@@ -8,12 +8,18 @@
     <meta name="apple-mobile-web-app-title" content="Mis Gastos">
     <title>Control de Gastos Personales</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         * {
             -webkit-tap-highlight-color: transparent;
         }
         body {
             overscroll-behavior: none;
+        }
+        .tab-active {
+            border-bottom: 3px solid;
+            border-image: linear-gradient(to right, #d946ef, #9333ea) 1;
         }
     </style>
 </head>
@@ -25,23 +31,24 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useRef } = React;
 
         function ExpenseApp() {
             const [expenses, setExpenses] = useState([]);
+            const [activeTab, setActiveTab] = useState('home');
             const [categories] = useState([
-                { id: 1, name: '🍔 Alimentación', color: 'from-green-400 to-emerald-500' },
-                { id: 2, name: '⚽ Deporte', color: 'from-blue-400 to-cyan-500' },
-                { id: 3, name: '💡 Servicios Públicos', color: 'from-yellow-400 to-orange-500' },
-                { id: 4, name: '🏠 Arriendo', color: 'from-red-400 to-rose-500' },
-                { id: 5, name: '👕 Ropa', color: 'from-pink-400 to-fuchsia-500' },
-                { id: 6, name: '✈️ Viajes', color: 'from-indigo-400 to-purple-500' },
-                { id: 7, name: '🎉 Diversión', color: 'from-violet-400 to-purple-500' },
-                { id: 8, name: '📺 Ocio', color: 'from-teal-400 to-cyan-500' },
-                { id: 9, name: '🚕 Transporte', color: 'from-amber-400 to-yellow-500' },
-                { id: 10, name: '💊 Salud', color: 'from-lime-400 to-green-500' },
-                { id: 11, name: '🐜 Gastos Hormigas', color: 'from-slate-400 to-gray-500' },
-                { id: 12, name: '🧹 Servicios de Aseo', color: 'from-sky-400 to-blue-500' }
+                { id: 1, name: '🍔 Alimentación', color: 'from-green-400 to-emerald-500', bgColor: 'rgb(52, 211, 153)', budget: 500000 },
+                { id: 2, name: '⚽ Deporte', color: 'from-blue-400 to-cyan-500', bgColor: 'rgb(34, 211, 238)', budget: 200000 },
+                { id: 3, name: '💡 Servicios Públicos', color: 'from-yellow-400 to-orange-500', bgColor: 'rgb(251, 146, 60)', budget: 300000 },
+                { id: 4, name: '🏠 Arriendo', color: 'from-red-400 to-rose-500', bgColor: 'rgb(251, 113, 133)', budget: 1500000 },
+                { id: 5, name: '👕 Ropa', color: 'from-pink-400 to-fuchsia-500', bgColor: 'rgb(232, 121, 249)', budget: 300000 },
+                { id: 6, name: '✈️ Viajes', color: 'from-indigo-400 to-purple-500', bgColor: 'rgb(168, 85, 247)', budget: 400000 },
+                { id: 7, name: '🎉 Diversión', color: 'from-violet-400 to-purple-500', bgColor: 'rgb(167, 139, 250)', budget: 250000 },
+                { id: 8, name: '📺 Ocio', color: 'from-teal-400 to-cyan-500', bgColor: 'rgb(45, 212, 191)', budget: 200000 },
+                { id: 9, name: '🚕 Transporte', color: 'from-amber-400 to-yellow-500', bgColor: 'rgb(251, 191, 36)', budget: 300000 },
+                { id: 10, name: '💊 Salud', color: 'from-lime-400 to-green-500', bgColor: 'rgb(132, 204, 22)', budget: 200000 },
+                { id: 11, name: '🐜 Gastos Hormigas', color: 'from-slate-400 to-gray-500', bgColor: 'rgb(148, 163, 184)', budget: 150000 },
+                { id: 12, name: '🧹 Servicios de Aseo', color: 'from-sky-400 to-blue-500', bgColor: 'rgb(56, 189, 248)', budget: 100000 }
             ]);
             const [showForm, setShowForm] = useState(false);
             const [motivationalQuote, setMotivationalQuote] = useState('');
@@ -51,6 +58,10 @@
                 category: '',
                 paymentMethod: 'efectivo'
             });
+            const [budgets, setBudgets] = useState({});
+            const chartRef = useRef(null);
+            const pieChartRef = useRef(null);
+            const lineChartRef = useRef(null);
 
             const quotes = [
                 { text: "Cada gasto registrado es un paso hacia tu libertad financiera", emoji: "🎯" },
@@ -58,19 +69,38 @@
                 { text: "¡Vas genial! Ya llevas control de tus finanzas", emoji: "🚀" },
                 { text: "Tus metas están más cerca de lo que crees", emoji: "⭐" },
                 { text: "Pequeños pasos, grandes resultados", emoji: "👣" },
-                { text: "Tu futuro yo te agradecerá este esfuerzo", emoji: "🙏" }
+                { text: "Tu futuro yo te agradecerá este esfuerzo", emoji: "🙏" },
+                { text: "Controla tus gastos antes de que ellos te controlen", emoji: "💪" },
+                { text: "Cada peso ahorrado es libertad ganada", emoji: "🔓" }
             ];
 
             useEffect(() => {
-                // Load expenses from localStorage
                 const saved = localStorage.getItem('expenses');
                 if (saved) {
                     setExpenses(JSON.parse(saved));
                 }
-                // Set random quote
+                const savedBudgets = localStorage.getItem('budgets');
+                if (savedBudgets) {
+                    setBudgets(JSON.parse(savedBudgets));
+                } else {
+                    const defaultBudgets = {};
+                    categories.forEach(cat => {
+                        defaultBudgets[cat.id] = cat.budget;
+                    });
+                    setBudgets(defaultBudgets);
+                    localStorage.setItem('budgets', JSON.stringify(defaultBudgets));
+                }
                 const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
                 setMotivationalQuote(randomQuote);
             }, []);
+
+            useEffect(() => {
+                if (activeTab === 'charts' && expenses.length > 0) {
+                    setTimeout(() => {
+                        renderCharts();
+                    }, 100);
+                }
+            }, [activeTab, expenses]);
 
             const saveExpense = () => {
                 if (!formData.amount || !formData.description || !formData.category) {
@@ -92,11 +122,12 @@
                 setExpenses(updated);
                 localStorage.setItem('expenses', JSON.stringify(updated));
 
-                // Reset form
                 setFormData({ amount: '', description: '', category: '', paymentMethod: 'efectivo' });
                 setShowForm(false);
 
-                // Show success message
+                const newQuote = quotes[Math.floor(Math.random() * quotes.length)];
+                setMotivationalQuote(newQuote);
+                
                 alert('✅ ¡Gasto registrado exitosamente!');
             };
 
@@ -115,157 +146,576 @@
                 }
             };
 
+            const getCategoryTotal = (categoryId) => {
+                const currentMonth = new Date().toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit' });
+                return expenses
+                    .filter(e => e.month === currentMonth && e.category.id === categoryId)
+                    .reduce((sum, e) => sum + e.amount, 0);
+            };
+
+            const renderCharts = () => {
+                const currentMonth = new Date().toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit' });
+                const monthExpenses = expenses.filter(e => e.month === currentMonth);
+
+                // Bar Chart - Gastos por Categoría
+                const ctx = document.getElementById('categoryChart');
+                if (ctx && chartRef.current) {
+                    chartRef.current.destroy();
+                }
+                if (ctx) {
+                    const categoryData = categories.map(cat => ({
+                        category: cat.name,
+                        total: getCategoryTotal(cat.id),
+                        budget: budgets[cat.id] || 0,
+                        color: cat.bgColor
+                    }));
+
+                    chartRef.current = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: categoryData.map(d => d.category),
+                            datasets: [{
+                                label: 'Gastado',
+                                data: categoryData.map(d => d.total),
+                                backgroundColor: categoryData.map(d => d.color),
+                                borderRadius: 8
+                            }, {
+                                label: 'Presupuesto',
+                                data: categoryData.map(d => d.budget),
+                                backgroundColor: 'rgba(148, 163, 184, 0.3)',
+                                borderColor: 'rgba(148, 163, 184, 0.8)',
+                                borderWidth: 2,
+                                borderRadius: 8
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: true,
+                                    position: 'top'
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        callback: function(value) {
+                                            return '$' + value.toLocaleString('es-CO');
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Pie Chart - Distribución
+                const pieCtx = document.getElementById('pieChart');
+                if (pieCtx && pieChartRef.current) {
+                    pieChartRef.current.destroy();
+                }
+                if (pieCtx) {
+                    const pieData = categories
+                        .map(cat => ({
+                            category: cat.name,
+                            total: getCategoryTotal(cat.id),
+                            color: cat.bgColor
+                        }))
+                        .filter(d => d.total > 0);
+
+                    pieChartRef.current = new Chart(pieCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: pieData.map(d => d.category),
+                            datasets: [{
+                                data: pieData.map(d => d.total),
+                                backgroundColor: pieData.map(d => d.color),
+                                borderWidth: 2,
+                                borderColor: '#fff'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom'
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Line Chart - Evolución diaria
+                const lineCtx = document.getElementById('lineChart');
+                if (lineCtx && lineChartRef.current) {
+                    lineChartRef.current.destroy();
+                }
+                if (lineCtx && monthExpenses.length > 0) {
+                    const dailyTotals = {};
+                    monthExpenses.forEach(exp => {
+                        const day = new Date(exp.date).getDate();
+                        dailyTotals[day] = (dailyTotals[day] || 0) + exp.amount;
+                    });
+
+                    const days = Object.keys(dailyTotals).sort((a, b) => a - b);
+                    const cumulativeTotals = [];
+                    let cumulative = 0;
+                    days.forEach(day => {
+                        cumulative += dailyTotals[day];
+                        cumulativeTotals.push(cumulative);
+                    });
+
+                    lineChartRef.current = new Chart(lineCtx, {
+                        type: 'line',
+                        data: {
+                            labels: days.map(d => `Día ${d}`),
+                            datasets: [{
+                                label: 'Gasto Acumulado',
+                                data: cumulativeTotals,
+                                borderColor: 'rgb(168, 85, 247)',
+                                backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                                tension: 0.4,
+                                fill: true,
+                                pointRadius: 4,
+                                pointBackgroundColor: 'rgb(168, 85, 247)'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: true
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        callback: function(value) {
+                                            return '$' + value.toLocaleString('es-CO');
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            };
+
+            const exportToCSV = () => {
+                if (expenses.length === 0) {
+                    alert('No hay gastos para exportar');
+                    return;
+                }
+
+                let csv = 'Fecha,Monto,Descripción,Categoría,Método de Pago\n';
+                expenses.forEach(exp => {
+                    const date = new Date(exp.date).toLocaleDateString('es-CO');
+                    csv += `${date},${exp.amount},"${exp.description}","${exp.category.name}",${exp.paymentMethod}\n`;
+                });
+
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `gastos_${new Date().toLocaleDateString('es-CO')}.csv`;
+                a.click();
+            };
+
+            const exportToPDF = () => {
+                if (expenses.length === 0) {
+                    alert('No hay gastos para exportar');
+                    return;
+                }
+
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+
+                doc.setFontSize(18);
+                doc.text('Control de Gastos Personales', 20, 20);
+                
+                doc.setFontSize(12);
+                doc.text(`Informe generado: ${new Date().toLocaleDateString('es-CO')}`, 20, 30);
+                doc.text(`Total del mes: $${getTotalMonth().toLocaleString('es-CO')}`, 20, 40);
+
+                doc.setFontSize(14);
+                doc.text('Resumen por Categoría:', 20, 55);
+
+                let y = 65;
+                categories.forEach(cat => {
+                    const total = getCategoryTotal(cat.id);
+                    if (total > 0) {
+                        doc.setFontSize(10);
+                        doc.text(`${cat.name}: $${total.toLocaleString('es-CO')}`, 25, y);
+                        y += 7;
+                    }
+                });
+
+                y += 10;
+                doc.setFontSize(14);
+                doc.text('Detalle de Gastos:', 20, y);
+                y += 10;
+
+                expenses.slice(0, 20).forEach(exp => {
+                    if (y > 270) {
+                        doc.addPage();
+                        y = 20;
+                    }
+                    doc.setFontSize(9);
+                    const date = new Date(exp.date).toLocaleDateString('es-CO');
+                    doc.text(`${date} - $${exp.amount.toLocaleString('es-CO')} - ${exp.description}`, 25, y);
+                    y += 6;
+                });
+
+                doc.save(`informe_gastos_${new Date().toLocaleDateString('es-CO')}.pdf`);
+            };
+
+            const exportToJSON = () => {
+                if (expenses.length === 0) {
+                    alert('No hay gastos para exportar');
+                    return;
+                }
+
+                const data = {
+                    generado: new Date().toISOString(),
+                    totalMes: getTotalMonth(),
+                    gastos: expenses
+                };
+
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `gastos_${new Date().toLocaleDateString('es-CO')}.json`;
+                a.click();
+            };
+
             return (
-                <div className="p-4 pb-24 max-w-2xl mx-auto">
+                <div className="pb-20">
                     {/* Header */}
-                    <div className="text-center mb-6">
-                        <h1 className="text-3xl font-bold bg-gradient-to-r from-fuchsia-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent mb-2">
-                            Control de Gastos
-                        </h1>
-                        <div className="h-1.5 bg-gradient-to-r from-fuchsia-600 via-purple-600 to-indigo-600 rounded-full shadow-lg mx-auto w-48"></div>
-                    </div>
-
-                    {/* Motivational Quote */}
-                    <div className="bg-gradient-to-r from-yellow-100 to-amber-100 rounded-2xl p-4 mb-6 border-2 border-yellow-300 shadow-lg">
-                        <div className="text-center">
-                            <div className="text-4xl mb-2">{motivationalQuote.emoji}</div>
-                            <p className="text-sm font-medium text-slate-700 italic">"{motivationalQuote.text}"</p>
+                    <div className="bg-gradient-to-r from-fuchsia-600 via-purple-600 to-indigo-600 text-white p-6 shadow-lg">
+                        <h1 className="text-2xl font-bold text-center mb-2">Control de Gastos</h1>
+                        <div className="text-center text-sm opacity-90">
+                            {new Date().toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                         </div>
                     </div>
 
-                    {/* Total Month */}
-                    <div className="bg-white rounded-2xl p-4 mb-6 shadow-xl border-2 border-purple-200">
-                        <div className="text-center">
-                            <div className="text-sm text-slate-600 mb-1">Total del Mes</div>
-                            <div className="text-3xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
-                                ${getTotalMonth().toLocaleString('es-CO')}
-                            </div>
-                            <div className="text-xs text-slate-500 mt-1">
-                                {new Date().toLocaleDateString('es-CO', { month: 'long', year: 'numeric' })}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Add Expense Button */}
-                    {!showForm && (
-                        <button
-                            onClick={() => setShowForm(true)}
-                            className="w-full bg-gradient-to-r from-fuchsia-500 to-purple-500 text-white rounded-2xl p-4 font-bold text-lg shadow-lg active:scale-95 transition-transform mb-6"
-                        >
-                            + Registrar Gasto
-                        </button>
-                    )}
-
-                    {/* Form */}
-                    {showForm && (
-                        <div className="bg-white rounded-2xl p-4 mb-6 shadow-xl border-2 border-purple-200">
-                            <h3 className="font-bold text-lg mb-4 text-slate-800">Nuevo Gasto</h3>
-                            
-                            <div className="space-y-3">
-                                <div>
-                                    <label className="block text-sm font-semibold text-slate-700 mb-1">Monto ($)</label>
-                                    <input
-                                        type="number"
-                                        value={formData.amount}
-                                        onChange={(e) => setFormData({...formData, amount: e.target.value})}
-                                        className="w-full p-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none text-lg"
-                                        placeholder="0"
-                                    />
+                    {/* Tab Content */}
+                    <div className="p-4 max-w-2xl mx-auto">
+                        {activeTab === 'home' && (
+                            <>
+                                {/* Motivational Quote */}
+                                <div className="bg-gradient-to-r from-yellow-100 to-amber-100 rounded-2xl p-4 mb-4 border-2 border-yellow-300 shadow-lg">
+                                    <div className="text-center">
+                                        <div className="text-4xl mb-2">{motivationalQuote.emoji}</div>
+                                        <p className="text-sm font-medium text-slate-700 italic">"{motivationalQuote.text}"</p>
+                                    </div>
                                 </div>
 
-                                <div>
-                                    <label className="block text-sm font-semibold text-slate-700 mb-1">Descripción</label>
-                                    <input
-                                        type="text"
-                                        value={formData.description}
-                                        onChange={(e) => setFormData({...formData, description: e.target.value})}
-                                        className="w-full p-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none"
-                                        placeholder="¿Qué compraste?"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-semibold text-slate-700 mb-1">Categoría</label>
-                                    <select
-                                        value={formData.category}
-                                        onChange={(e) => setFormData({...formData, category: e.target.value})}
-                                        className="w-full p-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none"
-                                    >
-                                        <option value="">Selecciona...</option>
-                                        {categories.map(cat => (
-                                            <option key={cat.id} value={cat.id}>{cat.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-semibold text-slate-700 mb-1">Método de Pago</label>
-                                    <select
-                                        value={formData.paymentMethod}
-                                        onChange={(e) => setFormData({...formData, paymentMethod: e.target.value})}
-                                        className="w-full p-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none"
-                                    >
-                                        <option value="efectivo">💵 Efectivo</option>
-                                        <option value="tarjeta">💳 Tarjeta</option>
-                                        <option value="transferencia">🏦 Transferencia</option>
-                                    </select>
-                                </div>
-
-                                <div className="flex gap-3 pt-2">
-                                    <button
-                                        onClick={saveExpense}
-                                        className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl p-3 font-bold active:scale-95 transition-transform"
-                                    >
-                                        Guardar
-                                    </button>
-                                    <button
-                                        onClick={() => setShowForm(false)}
-                                        className="flex-1 bg-slate-200 text-slate-700 rounded-xl p-3 font-bold active:scale-95 transition-transform"
-                                    >
-                                        Cancelar
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Expenses List */}
-                    <div className="space-y-3">
-                        <h3 className="font-bold text-lg text-slate-800 mb-3">Gastos Recientes</h3>
-                        {expenses.length === 0 ? (
-                            <div className="bg-white rounded-2xl p-8 text-center border-2 border-purple-100">
-                                <div className="text-6xl mb-3">📊</div>
-                                <p className="text-slate-500">Aún no tienes gastos registrados</p>
-                                <p className="text-sm text-slate-400 mt-1">¡Comienza ahora!</p>
-                            </div>
-                        ) : (
-                            [...expenses].reverse().map(expense => (
-                                <div key={expense.id} className="bg-white rounded-xl p-4 shadow-lg border-2 border-purple-100">
-                                    <div className="flex justify-between items-start mb-2">
-                                        <div className="flex-1">
-                                            <div className="font-bold text-lg text-slate-800">
-                                                ${expense.amount.toLocaleString('es-CO')}
-                                            </div>
-                                            <div className="text-sm text-slate-600">{expense.description}</div>
+                                {/* Total Month */}
+                                <div className="bg-white rounded-2xl p-4 mb-4 shadow-xl border-2 border-purple-200">
+                                    <div className="text-center">
+                                        <div className="text-sm text-slate-600 mb-1">Total del Mes</div>
+                                        <div className="text-3xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+                                            ${getTotalMonth().toLocaleString('es-CO')}
                                         </div>
+                                        <div className="text-xs text-slate-500 mt-1">
+                                            {new Date().toLocaleDateString('es-CO', { month: 'long', year: 'numeric' })}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Quick Stats */}
+                                <div className="grid grid-cols-2 gap-3 mb-4">
+                                    <div className="bg-gradient-to-br from-green-400 to-emerald-500 rounded-xl p-4 text-white shadow-lg">
+                                        <div className="text-xs opacity-90">Gastos Registrados</div>
+                                        <div className="text-2xl font-bold">{expenses.filter(e => e.month === new Date().toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit' })).length}</div>
+                                    </div>
+                                    <div className="bg-gradient-to-br from-blue-400 to-cyan-500 rounded-xl p-4 text-white shadow-lg">
+                                        <div className="text-xs opacity-90">Promedio Diario</div>
+                                        <div className="text-2xl font-bold">${Math.round(getTotalMonth() / new Date().getDate()).toLocaleString('es-CO')}</div>
+                                    </div>
+                                </div>
+
+                                {/* Add Expense Button */}
+                                {!showForm && (
+                                    <button
+                                        onClick={() => setShowForm(true)}
+                                        className="w-full bg-gradient-to-r from-fuchsia-500 to-purple-500 text-white rounded-2xl p-4 font-bold text-lg shadow-lg active:scale-95 transition-transform mb-4"
+                                    >
+                                        + Registrar Gasto
+                                    </button>
+                                )}
+
+                                {/* Form */}
+                                {showForm && (
+                                    <div className="bg-white rounded-2xl p-4 mb-4 shadow-xl border-2 border-purple-200">
+                                        <h3 className="font-bold text-lg mb-4 text-slate-800">Nuevo Gasto</h3>
+                                        
+                                        <div className="space-y-3">
+                                            <div>
+                                                <label className="block text-sm font-semibold text-slate-700 mb-1">Monto ($)</label>
+                                                <input
+                                                    type="number"
+                                                    value={formData.amount}
+                                                    onChange={(e) => setFormData({...formData, amount: e.target.value})}
+                                                    className="w-full p-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none text-lg"
+                                                    placeholder="0"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-semibold text-slate-700 mb-1">Descripción</label>
+                                                <input
+                                                    type="text"
+                                                    value={formData.description}
+                                                    onChange={(e) => setFormData({...formData, description: e.target.value})}
+                                                    className="w-full p-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none"
+                                                    placeholder="¿Qué compraste?"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-semibold text-slate-700 mb-1">Categoría</label>
+                                                <select
+                                                    value={formData.category}
+                                                    onChange={(e) => setFormData({...formData, category: e.target.value})}
+                                                    className="w-full p-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none"
+                                                >
+                                                    <option value="">Selecciona...</option>
+                                                    {categories.map(cat => (
+                                                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-semibold text-slate-700 mb-1">Método de Pago</label>
+                                                <select
+                                                    value={formData.paymentMethod}
+                                                    onChange={(e) => setFormData({...formData, paymentMethod: e.target.value})}
+                                                    className="w-full p-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none"
+                                                >
+                                                    <option value="efectivo">💵 Efectivo</option>
+                                                    <option value="tarjeta">💳 Tarjeta</option>
+                                                    <option value="transferencia">🏦 Transferencia</option>
+                                                </select>
+                                            </div>
+
+                                            <div className="flex gap-3 pt-2">
+                                                <button
+                                                    onClick={saveExpense}
+                                                    className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl p-3 font-bold active:scale-95 transition-transform"
+                                                >
+                                                    Guardar
+                                                </button>
+                                                <button
+                                                    onClick={() => setShowForm(false)}
+                                                    className="flex-1 bg-slate-200 text-slate-700 rounded-xl p-3 font-bold active:scale-95 transition-transform"
+                                                >
+                                                    Cancelar
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Expenses List */}
+                                <div className="space-y-3">
+                                    <h3 className="font-bold text-lg text-slate-800 mb-3">Gastos Recientes</h3>
+                                    {expenses.length === 0 ? (
+                                        <div className="bg-white rounded-2xl p-8 text-center border-2 border-purple-100">
+                                            <div className="text-6xl mb-3">📊</div>
+                                            <p className="text-slate-500">Aún no tienes gastos registrados</p>
+                                            <p className="text-sm text-slate-400 mt-1">¡Comienza ahora!</p>
+                                        </div>
+                                    ) : (
+                                        [...expenses].reverse().slice(0, 10).map(expense => (
+                                            <div key={expense.id} className="bg-white rounded-xl p-4 shadow-lg border-2 border-purple-100">
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <div className="flex-1">
+                                                        <div className="font-bold text-lg text-slate-800">
+                                                            ${expense.amount.toLocaleString('es-CO')}
+                                                        </div>
+                                                        <div className="text-sm text-slate-600">{expense.description}</div>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => deleteExpense(expense.id)}
+                                                        className="text-red-500 text-xl active:scale-90 transition-transform p-2"
+                                                    >
+                                                        🗑️
+                                                    </button>
+                                                </div>
+                                                <div className="flex items-center justify-between text-xs">
+                                                    <span className={`bg-gradient-to-r ${expense.category.color} text-white px-3 py-1 rounded-full font-semibold`}>
+                                                        {expense.category.name}
+                                                    </span>
+                                                    <span className="text-slate-500">
+                                                        {new Date(expense.date).toLocaleDateString('es-CO')}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </>
+                        )}
+
+                        {activeTab === 'charts' && (
+                            <div className="space-y-6">
+                                <h2 className="text-2xl font-bold text-slate-800 mb-4">📊 Análisis y Gráficos</h2>
+                                
+                                {expenses.length === 0 ? (
+                                    <div className="bg-white rounded-2xl p-8 text-center border-2 border-purple-100">
+                                        <div className="text-6xl mb-3">📈</div>
+                                        <p className="text-slate-500">No hay datos suficientes para mostrar gráficos</p>
+                                        <p className="text-sm text-slate-400 mt-1">Registra algunos gastos primero</p>
+                                    </div>
+                                ) : (
+                                    <>
+                                        {/* Line Chart */}
+                                        <div className="bg-white rounded-2xl p-4 shadow-xl border-2 border-purple-200">
+                                            <h3 className="font-bold text-lg mb-3 text-slate-800">📈 Evolución del Mes</h3>
+                                            <div style={{ height: '250px' }}>
+                                                <canvas id="lineChart"></canvas>
+                                            </div>
+                                        </div>
+
+                                        {/* Bar Chart */}
+                                        <div className="bg-white rounded-2xl p-4 shadow-xl border-2 border-purple-200">
+                                            <h3 className="font-bold text-lg mb-3 text-slate-800">📊 Gastos vs Presupuesto</h3>
+                                            <div style={{ height: '300px' }}>
+                                                <canvas id="categoryChart"></canvas>
+                                            </div>
+                                        </div>
+
+                                        {/* Pie Chart */}
+                                        <div className="bg-white rounded-2xl p-4 shadow-xl border-2 border-purple-200">
+                                            <h3 className="font-bold text-lg mb-3 text-slate-800">🎯 Distribución por Categoría</h3>
+                                            <div style={{ height: '300px' }}>
+                                                <canvas id="pieChart"></canvas>
+                                            </div>
+                                        </div>
+
+                                        {/* Category Details */}
+                                        <div className="bg-white rounded-2xl p-4 shadow-xl border-2 border-purple-200">
+                                            <h3 className="font-bold text-lg mb-3 text-slate-800">💰 Detalle por Categoría</h3>
+                                            <div className="space-y-2">
+                                                {categories.map(cat => {
+                                                    const total = getCategoryTotal(cat.id);
+                                                    const budget = budgets[cat.id] || 0;
+                                                    const percentage = budget > 0 ? (total / budget) * 100 : 0;
+                                                    
+                                                    if (total === 0) return null;
+                                                    
+                                                    return (
+                                                        <div key={cat.id} className="border-b border-slate-100 pb-2">
+                                                            <div className="flex justify-between items-center mb-1">
+                                                                <span className="text-sm font-semibold">{cat.name}</span>
+                                                                <span className="text-sm font-bold">${total.toLocaleString('es-CO')}</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="flex-1 bg-slate-200 rounded-full h-2">
+                                                                    <div 
+                                                                        className={`h-2 rounded-full ${percentage > 100 ? 'bg-red-500' : 'bg-gradient-to-r ' + cat.color}`}
+                                                                        style={{ width: `${Math.min(percentage, 100)}%` }}
+                                                                    ></div>
+                                                                </div>
+                                                                <span className={`text-xs font-semibold ${percentage > 100 ? 'text-red-500' : 'text-slate-500'}`}>
+                                                                    {percentage.toFixed(0)}%
+                                                                </span>
+                                                            </div>
+                                                            <div className="text-xs text-slate-500 mt-1">
+                                                                Presupuesto: ${budget.toLocaleString('es-CO')}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        )}
+
+                        {activeTab === 'export' && (
+                            <div className="space-y-4">
+                                <h2 className="text-2xl font-bold text-slate-800 mb-4">📥 Exportar Informes</h2>
+                                
+                                <div className="bg-white rounded-2xl p-6 shadow-xl border-2 border-purple-200">
+                                    <h3 className="font-bold text-lg mb-4 text-slate-800">Descarga tus datos</h3>
+                                    <p className="text-sm text-slate-600 mb-4">
+                                        Exporta tus gastos en diferentes formatos para análisis o respaldo.
+                                    </p>
+                                    
+                                    <div className="space-y-3">
                                         <button
-                                            onClick={() => deleteExpense(expense.id)}
-                                            className="text-red-500 text-xl active:scale-90 transition-transform p-2"
+                                            onClick={exportToPDF}
+                                            className="w-full bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-xl p-4 font-bold active:scale-95 transition-transform flex items-center justify-center gap-2"
                                         >
-                                            🗑️
+                                            <span>📄</span>
+                                            <span>Descargar PDF</span>
+                                        </button>
+                                        
+                                        <button
+                                            onClick={exportToCSV}
+                                            className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl p-4 font-bold active:scale-95 transition-transform flex items-center justify-center gap-2"
+                                        >
+                                            <span>📊</span>
+                                            <span>Descargar Excel (CSV)</span>
+                                        </button>
+                                        
+                                        <button
+                                            onClick={exportToJSON}
+                                            className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl p-4 font-bold active:scale-95 transition-transform flex items-center justify-center gap-2"
+                                        >
+                                            <span>💾</span>
+                                            <span>Descargar JSON</span>
                                         </button>
                                     </div>
-                                    <div className="flex items-center justify-between text-xs">
-                                        <span className={`bg-gradient-to-r ${expense.category.color} text-white px-3 py-1 rounded-full font-semibold`}>
-                                            {expense.category.name}
-                                        </span>
-                                        <span className="text-slate-500">
-                                            {new Date(expense.date).toLocaleDateString('es-CO')}
-                                        </span>
-                                    </div>
                                 </div>
-                            ))
+
+                                <div className="bg-gradient-to-r from-amber-100 to-yellow-100 rounded-2xl p-4 border-2 border-yellow-300">
+                                    <h4 className="font-bold text-sm mb-2">ℹ️ Información sobre formatos</h4>
+                                    <ul className="text-xs text-slate-700 space-y-1">
+                                        <li>• <strong>PDF:</strong> Informe completo listo para imprimir</li>
+                                        <li>• <strong>CSV:</strong> Para abrir en Excel o Google Sheets</li>
+                                        <li>• <strong>JSON:</strong> Para respaldo completo de datos</li>
+                                    </ul>
+                                </div>
+                            </div>
                         )}
+                    </div>
+
+                    {/* Bottom Navigation */}
+                    <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-purple-200 shadow-lg">
+                        <div className="flex justify-around items-center p-2 max-w-2xl mx-auto">
+                            <button
+                                onClick={() => setActiveTab('home')}
+                                className={`flex flex-col items-center p-2 rounded-lg flex-1 ${activeTab === 'home' ? 'tab-active text-purple-600' : 'text-slate-500'}`}
+                            >
+                                <span className="text-2xl mb-1">🏠</span>
+                                <span className="text-xs font-semibold">Inicio</span>
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('charts')}
+                                className={`flex flex-col items-center p-2 rounded-lg flex-1 ${activeTab === 'charts' ? 'tab-active text-purple-600' : 'text-slate-500'}`}
+                            >
+                                <span className="text-2xl mb-1">📊</span>
+                                <span className="text-xs font-semibold">Gráficos</span>
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('export')}
+                                className={`flex flex-col items-center p-2 rounded-lg flex-1 ${activeTab === 'export' ? 'tab-active text-purple-600' : 'text-slate-500'}`}
+                            >
+                                <span className="text-2xl mb-1">📥</span>
+                                <span className="text-xs font-semibold">Exportar</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             );
