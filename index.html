@@ -7,8 +7,8 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Mis Gastos">
     <!-- Custom App Icon - Minimalist $100 Bill -->
-    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23059669;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%2310b981;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='22' fill='url(%23grad)'/%3E%3Crect x='15' y='30' width='70' height='40' rx='3' fill='%2316a34a' opacity='0.3'/%3E%3Crect x='20' y='35' width='60' height='30' rx='2' fill='white' opacity='0.95'/%3E%3Ctext x='50' y='55' font-family='Arial' font-size='20' font-weight='bold' text-anchor='middle' fill='%23059669'%3E%24100%3C/text%3E%3Ccircle cx='28' cy='50' r='6' fill='none' stroke='%23059669' stroke-width='1.5' opacity='0.6'/%3E%3Ccircle cx='72' cy='50' r='6' fill='none' stroke='%23059669' stroke-width='1.5' opacity='0.6'/%3E%3C/svg%3E">
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23059669;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%2310b981;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='22' fill='url(%23grad)'/%3E%3Crect x='15' y='30' width='70' height='40' rx='3' fill='%2316a34a' opacity='0.3'/%3E%3Crect x='20' y='35' width='60' height='30' rx='2' fill='white' opacity='0.95'/%3E%3Ctext x='50' y='55' font-family='Arial' font-size='20' font-weight='bold' text-anchor='middle' fill='%23059669'%3E%24100%3C/text%3E%3Ccircle cx='28' cy='50' r='6' fill='none' stroke='%23059669' stroke-width='1.5' opacity='0.6'/%3E%3Ccircle cx='72' cy='50' r='6' fill='none' stroke='%23059669' stroke-width='1.5' opacity='0.6'/%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23667eea;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23764ba2;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='22' fill='url(%23grad)'/%3E%3Crect x='15' y='30' width='70' height='40' rx='3' fill='%235a67d8' opacity='0.3'/%3E%3Crect x='20' y='35' width='60' height='30' rx='2' fill='white' opacity='0.95'/%3E%3Ctext x='50' y='55' font-family='Arial' font-size='20' font-weight='bold' text-anchor='middle' fill='%23667eea'%3E%24100%3C/text%3E%3Ccircle cx='28' cy='50' r='6' fill='none' stroke='%23667eea' stroke-width='1.5' opacity='0.6'/%3E%3Ccircle cx='72' cy='50' r='6' fill='none' stroke='%23667eea' stroke-width='1.5' opacity='0.6'/%3E%3C/svg%3E">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23667eea;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23764ba2;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='22' fill='url(%23grad)'/%3E%3Crect x='15' y='30' width='70' height='40' rx='3' fill='%235a67d8' opacity='0.3'/%3E%3Crect x='20' y='35' width='60' height='30' rx='2' fill='white' opacity='0.95'/%3E%3Ctext x='50' y='55' font-family='Arial' font-size='20' font-weight='bold' text-anchor='middle' fill='%23667eea'%3E%24100%3C/text%3E%3Ccircle cx='28' cy='50' r='6' fill='none' stroke='%23667eea' stroke-width='1.5' opacity='0.6'/%3E%3Ccircle cx='72' cy='50' r='6' fill='none' stroke='%23667eea' stroke-width='1.5' opacity='0.6'/%3E%3C/svg%3E">
     <title>Control de Gastos Personales</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -19,14 +19,53 @@
         }
         body {
             overscroll-behavior: none;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .neo-card {
+            background: #2d3748;
+            box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.3), -8px -8px 16px rgba(255, 255, 255, 0.05);
+        }
+        .category-icon {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+        .category-icon:active {
+            transform: scale(0.95);
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .expense-card {
+            background: rgba(255, 255, 255, 0.95);
+            transition: all 0.3s ease;
+        }
+        .expense-card:active {
+            transform: translateY(2px);
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        .float-animation {
+            animation: float 3s ease-in-out infinite;
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
         .tab-active {
-            border-bottom: 3px solid;
-            border-image: linear-gradient(to right, #d946ef, #9333ea) 1;
+            background: rgba(255, 255, 255, 0.25) !important;
+            backdrop-filter: blur(10px);
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 min-h-screen">
+<body>
     <div id="app"></div>
 
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -40,18 +79,18 @@
             const [expenses, setExpenses] = useState([]);
             const [activeTab, setActiveTab] = useState('home');
             const [categories] = useState([
-                { id: 1, name: '🍔 Alimentación', color: 'from-green-400 to-emerald-500', bgColor: 'rgb(52, 211, 153)', budget: 500000 },
-                { id: 2, name: '⚽ Deporte', color: 'from-blue-400 to-cyan-500', bgColor: 'rgb(34, 211, 238)', budget: 200000 },
-                { id: 3, name: '💡 Servicios Públicos', color: 'from-yellow-400 to-orange-500', bgColor: 'rgb(251, 146, 60)', budget: 300000 },
-                { id: 4, name: '🏠 Arriendo', color: 'from-red-400 to-rose-500', bgColor: 'rgb(251, 113, 133)', budget: 1500000 },
-                { id: 5, name: '👕 Ropa', color: 'from-pink-400 to-fuchsia-500', bgColor: 'rgb(232, 121, 249)', budget: 300000 },
-                { id: 6, name: '✈️ Viajes', color: 'from-indigo-400 to-purple-500', bgColor: 'rgb(168, 85, 247)', budget: 400000 },
-                { id: 7, name: '🎉 Diversión', color: 'from-violet-400 to-purple-500', bgColor: 'rgb(167, 139, 250)', budget: 250000 },
-                { id: 8, name: '📺 Ocio', color: 'from-teal-400 to-cyan-500', bgColor: 'rgb(45, 212, 191)', budget: 200000 },
-                { id: 9, name: '🚕 Transporte', color: 'from-amber-400 to-yellow-500', bgColor: 'rgb(251, 191, 36)', budget: 300000 },
-                { id: 10, name: '💊 Salud', color: 'from-lime-400 to-green-500', bgColor: 'rgb(132, 204, 22)', budget: 200000 },
-                { id: 11, name: '🐜 Gastos Hormigas', color: 'from-slate-400 to-gray-500', bgColor: 'rgb(148, 163, 184)', budget: 150000 },
-                { id: 12, name: '🧹 Servicios de Aseo', color: 'from-sky-400 to-blue-500', bgColor: 'rgb(56, 189, 248)', budget: 100000 }
+                { id: 1, name: 'Alimentación', icon: '🍔', color: '#FF6B6B', bgColor: 'rgb(255, 107, 107)', budget: 500000 },
+                { id: 2, name: 'Deporte', icon: '⚽', color: '#4ECDC4', bgColor: 'rgb(78, 205, 196)', budget: 200000 },
+                { id: 3, name: 'Servicios', icon: '💡', color: '#FFD93D', bgColor: 'rgb(255, 217, 61)', budget: 300000 },
+                { id: 4, name: 'Arriendo', icon: '🏠', color: '#95E1D3', bgColor: 'rgb(149, 225, 211)', budget: 1500000 },
+                { id: 5, name: 'Ropa', icon: '👕', color: '#F38181', bgColor: 'rgb(243, 129, 129)', budget: 300000 },
+                { id: 6, name: 'Viajes', icon: '✈️', color: '#AA96DA', bgColor: 'rgb(170, 150, 218)', budget: 400000 },
+                { id: 7, name: 'Diversión', icon: '🎉', color: '#FCBAD3', bgColor: 'rgb(252, 186, 211)', budget: 250000 },
+                { id: 8, name: 'Ocio', icon: '📺', color: '#A8D8EA', bgColor: 'rgb(168, 216, 234)', budget: 200000 },
+                { id: 9, name: 'Transporte', icon: '🚕', color: '#FFAAA5', bgColor: 'rgb(255, 170, 165)', budget: 300000 },
+                { id: 10, name: 'Salud', icon: '💊', color: '#90CCF4', bgColor: 'rgb(144, 204, 244)', budget: 200000 },
+                { id: 11, name: 'Hormigas', icon: '🐜', color: '#B4A7D6', bgColor: 'rgb(180, 167, 214)', budget: 150000 },
+                { id: 12, name: 'Aseo', icon: '🧹', color: '#FFD6A5', bgColor: 'rgb(255, 214, 165)', budget: 100000 }
             ]);
             const [showForm, setShowForm] = useState(false);
             const [motivationalQuote, setMotivationalQuote] = useState('');
@@ -62,19 +101,17 @@
                 paymentMethod: 'efectivo'
             });
             const [budgets, setBudgets] = useState({});
-            const chartRef = useRef(null);
-            const pieChartRef = useRef(null);
-            const lineChartRef = useRef(null);
+            const donutChartRef = useRef(null);
 
             const quotes = [
-                { text: "Cada gasto registrado es un paso hacia tu libertad financiera", emoji: "🎯" },
-                { text: "El ahorro de hoy es la tranquilidad de mañana", emoji: "💰" },
-                { text: "¡Vas genial! Ya llevas control de tus finanzas", emoji: "🚀" },
-                { text: "Tus metas están más cerca de lo que crees", emoji: "⭐" },
-                { text: "Pequeños pasos, grandes resultados", emoji: "👣" },
-                { text: "Tu futuro yo te agradecerá este esfuerzo", emoji: "🙏" },
-                { text: "Controla tus gastos antes de que ellos te controlen", emoji: "💪" },
-                { text: "Cada peso ahorrado es libertad ganada", emoji: "🔓" }
+                { text: "Cada gasto registrado te acerca a tus metas", emoji: "🎯" },
+                { text: "El control financiero es libertad", emoji: "💰" },
+                { text: "¡Excelente trabajo! Sigue así", emoji: "🚀" },
+                { text: "Tus metas están más cerca", emoji: "⭐" },
+                { text: "Pequeños pasos, grandes logros", emoji: "👣" },
+                { text: "Tu futuro yo te lo agradecerá", emoji: "🙏" },
+                { text: "Domina tus finanzas, domina tu vida", emoji: "💪" },
+                { text: "Cada peso cuenta hacia tu libertad", emoji: "🔓" }
             ];
 
             useEffect(() => {
@@ -98,9 +135,9 @@
             }, []);
 
             useEffect(() => {
-                if (activeTab === 'charts' && expenses.length > 0) {
+                if (activeTab === 'home' && expenses.length > 0) {
                     setTimeout(() => {
-                        renderCharts();
+                        renderDonutChart();
                     }, 100);
                 }
             }, [activeTab, expenses]);
@@ -131,7 +168,7 @@
                 const newQuote = quotes[Math.floor(Math.random() * quotes.length)];
                 setMotivationalQuote(newQuote);
                 
-                alert('✅ ¡Gasto registrado exitosamente!');
+                alert('✅ ¡Gasto registrado!');
             };
 
             const getTotalMonth = () => {
@@ -142,7 +179,7 @@
             };
 
             const deleteExpense = (id) => {
-                if (confirm('¿Seguro que quieres eliminar este gasto?')) {
+                if (confirm('¿Eliminar este gasto?')) {
                     const updated = expenses.filter(e => e.id !== id);
                     setExpenses(updated);
                     localStorage.setItem('expenses', JSON.stringify(updated));
@@ -156,177 +193,62 @@
                     .reduce((sum, e) => sum + e.amount, 0);
             };
 
-            const renderCharts = () => {
-                const currentMonth = new Date().toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit' });
-                const monthExpenses = expenses.filter(e => e.month === currentMonth);
+            const renderDonutChart = () => {
+                const canvas = document.getElementById('donutChart');
+                if (!canvas) return;
 
-                // Bar Chart - Gastos por Categoría
-                const ctx = document.getElementById('categoryChart');
-                if (ctx && chartRef.current) {
-                    chartRef.current.destroy();
+                const ctx = canvas.getContext('2d');
+                if (donutChartRef.current) {
+                    donutChartRef.current.destroy();
                 }
-                if (ctx) {
-                    const categoryData = categories.map(cat => ({
-                        category: cat.name,
+
+                const categoryData = categories
+                    .map(cat => ({
+                        name: cat.name,
+                        icon: cat.icon,
                         total: getCategoryTotal(cat.id),
-                        budget: budgets[cat.id] || 0,
-                        color: cat.bgColor
-                    }));
+                        color: cat.color
+                    }))
+                    .filter(d => d.total > 0);
 
-                    chartRef.current = new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-                            labels: categoryData.map(d => d.category),
-                            datasets: [{
-                                label: 'Gastado',
-                                data: categoryData.map(d => d.total),
-                                backgroundColor: categoryData.map(d => d.color),
-                                borderRadius: 8
-                            }, {
-                                label: 'Presupuesto',
-                                data: categoryData.map(d => d.budget),
-                                backgroundColor: 'rgba(148, 163, 184, 0.3)',
-                                borderColor: 'rgba(148, 163, 184, 0.8)',
-                                borderWidth: 2,
-                                borderRadius: 8
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: {
-                                    display: true,
-                                    position: 'top'
-                                }
+                if (categoryData.length === 0) return;
+
+                donutChartRef.current = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: categoryData.map(d => d.icon + ' ' + d.name),
+                        datasets: [{
+                            data: categoryData.map(d => d.total),
+                            backgroundColor: categoryData.map(d => d.color),
+                            borderWidth: 0,
+                            borderRadius: 8,
+                            spacing: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        cutout: '70%',
+                        plugins: {
+                            legend: {
+                                display: false
                             },
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    ticks: {
-                                        callback: function(value) {
-                                            return '$' + value.toLocaleString('es-CO');
-                                        }
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                padding: 12,
+                                titleColor: '#fff',
+                                bodyColor: '#fff',
+                                borderColor: 'rgba(255, 255, 255, 0.2)',
+                                borderWidth: 1,
+                                callbacks: {
+                                    label: function(context) {
+                                        return '$' + context.parsed.toLocaleString('es-CO');
                                     }
                                 }
                             }
                         }
-                    });
-                }
-
-                // Pie Chart - Distribución
-                const pieCtx = document.getElementById('pieChart');
-                if (pieCtx && pieChartRef.current) {
-                    pieChartRef.current.destroy();
-                }
-                if (pieCtx) {
-                    const pieData = categories
-                        .map(cat => ({
-                            category: cat.name,
-                            total: getCategoryTotal(cat.id),
-                            color: cat.bgColor
-                        }))
-                        .filter(d => d.total > 0);
-
-                    pieChartRef.current = new Chart(pieCtx, {
-                        type: 'doughnut',
-                        data: {
-                            labels: pieData.map(d => d.category),
-                            datasets: [{
-                                data: pieData.map(d => d.total),
-                                backgroundColor: pieData.map(d => d.color),
-                                borderWidth: 2,
-                                borderColor: '#fff'
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: {
-                                    position: 'bottom'
-                                }
-                            }
-                        }
-                    });
-                }
-
-                // Line Chart - Evolución diaria
-                const lineCtx = document.getElementById('lineChart');
-                if (lineCtx && lineChartRef.current) {
-                    lineChartRef.current.destroy();
-                }
-                if (lineCtx && monthExpenses.length > 0) {
-                    const dailyTotals = {};
-                    monthExpenses.forEach(exp => {
-                        const day = new Date(exp.date).getDate();
-                        dailyTotals[day] = (dailyTotals[day] || 0) + exp.amount;
-                    });
-
-                    const days = Object.keys(dailyTotals).sort((a, b) => a - b);
-                    const cumulativeTotals = [];
-                    let cumulative = 0;
-                    days.forEach(day => {
-                        cumulative += dailyTotals[day];
-                        cumulativeTotals.push(cumulative);
-                    });
-
-                    lineChartRef.current = new Chart(lineCtx, {
-                        type: 'line',
-                        data: {
-                            labels: days.map(d => `Día ${d}`),
-                            datasets: [{
-                                label: 'Gasto Acumulado',
-                                data: cumulativeTotals,
-                                borderColor: 'rgb(168, 85, 247)',
-                                backgroundColor: 'rgba(168, 85, 247, 0.1)',
-                                tension: 0.4,
-                                fill: true,
-                                pointRadius: 4,
-                                pointBackgroundColor: 'rgb(168, 85, 247)'
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: {
-                                    display: true
-                                }
-                            },
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    ticks: {
-                                        callback: function(value) {
-                                            return '$' + value.toLocaleString('es-CO');
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    });
-                }
-            };
-
-            const exportToCSV = () => {
-                if (expenses.length === 0) {
-                    alert('No hay gastos para exportar');
-                    return;
-                }
-
-                let csv = 'Fecha,Monto,Descripción,Categoría,Método de Pago\n';
-                expenses.forEach(exp => {
-                    const date = new Date(exp.date).toLocaleDateString('es-CO');
-                    csv += `${date},${exp.amount},"${exp.description}","${exp.category.name}",${exp.paymentMethod}\n`;
+                    }
                 });
-
-                const blob = new Blob([csv], { type: 'text/csv' });
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `gastos_${new Date().toLocaleDateString('es-CO')}.csv`;
-                a.click();
             };
 
             const exportToPDF = () => {
@@ -342,381 +264,287 @@
                 doc.text('Control de Gastos Personales', 20, 20);
                 
                 doc.setFontSize(12);
-                doc.text(`Informe generado: ${new Date().toLocaleDateString('es-CO')}`, 20, 30);
-                doc.text(`Total del mes: $${getTotalMonth().toLocaleString('es-CO')}`, 20, 40);
+                doc.text(`Informe: ${new Date().toLocaleDateString('es-CO')}`, 20, 30);
+                doc.text(`Total: $${getTotalMonth().toLocaleString('es-CO')}`, 20, 40);
 
                 doc.setFontSize(14);
-                doc.text('Resumen por Categoría:', 20, 55);
+                doc.text('Resumen:', 20, 55);
 
                 let y = 65;
                 categories.forEach(cat => {
                     const total = getCategoryTotal(cat.id);
                     if (total > 0) {
                         doc.setFontSize(10);
-                        doc.text(`${cat.name}: $${total.toLocaleString('es-CO')}`, 25, y);
+                        doc.text(`${cat.icon} ${cat.name}: $${total.toLocaleString('es-CO')}`, 25, y);
                         y += 7;
                     }
                 });
 
-                y += 10;
-                doc.setFontSize(14);
-                doc.text('Detalle de Gastos:', 20, y);
-                y += 10;
-
-                expenses.slice(0, 20).forEach(exp => {
-                    if (y > 270) {
-                        doc.addPage();
-                        y = 20;
-                    }
-                    doc.setFontSize(9);
-                    const date = new Date(exp.date).toLocaleDateString('es-CO');
-                    doc.text(`${date} - $${exp.amount.toLocaleString('es-CO')} - ${exp.description}`, 25, y);
-                    y += 6;
-                });
-
-                doc.save(`informe_gastos_${new Date().toLocaleDateString('es-CO')}.pdf`);
-            };
-
-            const exportToJSON = () => {
-                if (expenses.length === 0) {
-                    alert('No hay gastos para exportar');
-                    return;
-                }
-
-                const data = {
-                    generado: new Date().toISOString(),
-                    totalMes: getTotalMonth(),
-                    gastos: expenses
-                };
-
-                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `gastos_${new Date().toLocaleDateString('es-CO')}.json`;
-                a.click();
+                doc.save(`gastos_${new Date().toLocaleDateString('es-CO')}.pdf`);
             };
 
             return (
-                <div className="pb-20">
+                <div className="min-h-screen pb-24">
                     {/* Header */}
-                    <div className="bg-gradient-to-r from-fuchsia-600 via-purple-600 to-indigo-600 text-white p-6 shadow-lg">
-                        <h1 className="text-2xl font-bold text-center mb-2">Control de Gastos</h1>
-                        <div className="text-center text-sm opacity-90">
-                            {new Date().toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                    <div className="p-6 pb-8">
+                        <div className="flex justify-between items-center mb-6">
+                            <div>
+                                <h1 className="text-white text-3xl font-bold mb-1">Hola! 👋</h1>
+                                <p className="text-white text-sm opacity-80">
+                                    {new Date().toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' })}
+                                </p>
+                            </div>
+                            <button 
+                                onClick={exportToPDF}
+                                className="glass-card p-3 rounded-2xl text-white active:scale-95 transition-transform"
+                            >
+                                <span className="text-2xl">📊</span>
+                            </button>
                         </div>
-                    </div>
 
-                    {/* Tab Content */}
-                    <div className="p-4 max-w-2xl mx-auto">
                         {activeTab === 'home' && (
                             <>
-                                {/* Motivational Quote */}
-                                <div className="bg-gradient-to-r from-yellow-100 to-amber-100 rounded-2xl p-4 mb-4 border-2 border-yellow-300 shadow-lg">
-                                    <div className="text-center">
-                                        <div className="text-4xl mb-2">{motivationalQuote.emoji}</div>
-                                        <p className="text-sm font-medium text-slate-700 italic">"{motivationalQuote.text}"</p>
-                                    </div>
-                                </div>
-
-                                {/* Total Month */}
-                                <div className="bg-white rounded-2xl p-4 mb-4 shadow-xl border-2 border-purple-200">
-                                    <div className="text-center">
-                                        <div className="text-sm text-slate-600 mb-1">Total del Mes</div>
-                                        <div className="text-3xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+                                {/* Total Card */}
+                                <div className="glass-card rounded-3xl p-6 mb-6 relative overflow-hidden">
+                                    <div className="relative z-10">
+                                        <p className="text-white text-sm opacity-80 mb-2">Balance del mes</p>
+                                        <h2 className="text-white text-4xl font-bold mb-1">
                                             ${getTotalMonth().toLocaleString('es-CO')}
-                                        </div>
-                                        <div className="text-xs text-slate-500 mt-1">
-                                            {new Date().toLocaleDateString('es-CO', { month: 'long', year: 'numeric' })}
-                                        </div>
+                                        </h2>
+                                        <p className="text-white text-xs opacity-60">
+                                            {expenses.filter(e => e.month === new Date().toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit' })).length} transacciones
+                                        </p>
+                                    </div>
+                                    <div className="absolute -right-8 -bottom-8 text-9xl opacity-10 float-animation">💰</div>
+                                </div>
+
+                                {/* Motivational Quote */}
+                                <div className="glass-card rounded-2xl p-4 mb-6">
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-3xl">{motivationalQuote.emoji}</span>
+                                        <p className="text-white text-sm font-medium flex-1">"{motivationalQuote.text}"</p>
                                     </div>
                                 </div>
 
-                                {/* Quick Stats */}
-                                <div className="grid grid-cols-2 gap-3 mb-4">
-                                    <div className="bg-gradient-to-br from-green-400 to-emerald-500 rounded-xl p-4 text-white shadow-lg">
-                                        <div className="text-xs opacity-90">Gastos Registrados</div>
-                                        <div className="text-2xl font-bold">{expenses.filter(e => e.month === new Date().toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit' })).length}</div>
+                                {/* Donut Chart */}
+                                {expenses.length > 0 && (
+                                    <div className="glass-card rounded-3xl p-6 mb-6">
+                                        <h3 className="text-white font-bold mb-4">Distribución</h3>
+                                        <div className="relative" style={{ height: '250px' }}>
+                                            <canvas id="donutChart"></canvas>
+                                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                                <div className="text-center">
+                                                    <p className="text-white text-xs opacity-60">Total</p>
+                                                    <p className="text-white text-xl font-bold">${(getTotalMonth()/1000).toFixed(0)}K</p>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className="bg-gradient-to-br from-blue-400 to-cyan-500 rounded-xl p-4 text-white shadow-lg">
-                                        <div className="text-xs opacity-90">Promedio Diario</div>
-                                        <div className="text-2xl font-bold">${Math.round(getTotalMonth() / new Date().getDate()).toLocaleString('es-CO')}</div>
+                                )}
+
+                                {/* Categories Grid */}
+                                <div className="mb-6">
+                                    <h3 className="text-white font-bold mb-4">Categorías</h3>
+                                    <div className="grid grid-cols-4 gap-3">
+                                        {categories.map(cat => {
+                                            const total = getCategoryTotal(cat.id);
+                                            return (
+                                                <div key={cat.id} className="text-center">
+                                                    <button 
+                                                        onClick={() => {
+                                                            setFormData({...formData, category: cat.id.toString()});
+                                                            setShowForm(true);
+                                                        }}
+                                                        className="category-icon w-full aspect-square rounded-2xl flex flex-col items-center justify-center mb-2"
+                                                        style={{ background: `${cat.color}20` }}
+                                                    >
+                                                        <span className="text-3xl mb-1">{cat.icon}</span>
+                                                        {total > 0 && (
+                                                            <span className="text-white text-xs font-bold">
+                                                                ${(total/1000).toFixed(0)}K
+                                                            </span>
+                                                        )}
+                                                    </button>
+                                                    <p className="text-white text-xs opacity-80">{cat.name}</p>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 </div>
 
                                 {/* Add Expense Button */}
-                                {!showForm && (
-                                    <button
-                                        onClick={() => setShowForm(true)}
-                                        className="w-full bg-gradient-to-r from-fuchsia-500 to-purple-500 text-white rounded-2xl p-4 font-bold text-lg shadow-lg active:scale-95 transition-transform mb-4"
-                                    >
-                                        + Registrar Gasto
-                                    </button>
-                                )}
+                                <button
+                                    onClick={() => setShowForm(!showForm)}
+                                    className="w-full glass-card rounded-2xl p-4 text-white font-bold text-lg active:scale-95 transition-transform mb-6 flex items-center justify-center gap-2"
+                                >
+                                    <span className="text-2xl">{showForm ? '✕' : '+'}</span>
+                                    <span>{showForm ? 'Cancelar' : 'Nuevo Gasto'}</span>
+                                </button>
 
                                 {/* Form */}
                                 {showForm && (
-                                    <div className="bg-white rounded-2xl p-4 mb-4 shadow-xl border-2 border-purple-200">
-                                        <h3 className="font-bold text-lg mb-4 text-slate-800">Nuevo Gasto</h3>
+                                    <div className="expense-card rounded-3xl p-6 mb-6 shadow-2xl">
+                                        <h3 className="gradient-text font-bold text-xl mb-4">Registrar Gasto</h3>
                                         
-                                        <div className="space-y-3">
+                                        <div className="space-y-4">
                                             <div>
-                                                <label className="block text-sm font-semibold text-slate-700 mb-1">Monto ($)</label>
+                                                <label className="block text-gray-700 text-sm font-bold mb-2">💵 Monto</label>
                                                 <input
                                                     type="number"
                                                     value={formData.amount}
                                                     onChange={(e) => setFormData({...formData, amount: e.target.value})}
-                                                    className="w-full p-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none text-lg"
+                                                    className="w-full p-4 border-2 border-gray-200 rounded-2xl focus:border-purple-400 focus:outline-none text-2xl font-bold"
                                                     placeholder="0"
                                                 />
                                             </div>
 
                                             <div>
-                                                <label className="block text-sm font-semibold text-slate-700 mb-1">Descripción</label>
+                                                <label className="block text-gray-700 text-sm font-bold mb-2">📝 Descripción</label>
                                                 <input
                                                     type="text"
                                                     value={formData.description}
                                                     onChange={(e) => setFormData({...formData, description: e.target.value})}
-                                                    className="w-full p-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none"
-                                                    placeholder="¿Qué compraste?"
+                                                    className="w-full p-4 border-2 border-gray-200 rounded-2xl focus:border-purple-400 focus:outline-none"
+                                                    placeholder="¿En qué gastaste?"
                                                 />
                                             </div>
 
                                             <div>
-                                                <label className="block text-sm font-semibold text-slate-700 mb-1">Categoría</label>
+                                                <label className="block text-gray-700 text-sm font-bold mb-2">🏷️ Categoría</label>
                                                 <select
                                                     value={formData.category}
                                                     onChange={(e) => setFormData({...formData, category: e.target.value})}
-                                                    className="w-full p-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none"
+                                                    className="w-full p-4 border-2 border-gray-200 rounded-2xl focus:border-purple-400 focus:outline-none"
                                                 >
                                                     <option value="">Selecciona...</option>
                                                     {categories.map(cat => (
-                                                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                                        <option key={cat.id} value={cat.id}>{cat.icon} {cat.name}</option>
                                                     ))}
                                                 </select>
                                             </div>
 
                                             <div>
-                                                <label className="block text-sm font-semibold text-slate-700 mb-1">Método de Pago</label>
-                                                <select
-                                                    value={formData.paymentMethod}
-                                                    onChange={(e) => setFormData({...formData, paymentMethod: e.target.value})}
-                                                    className="w-full p-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:outline-none"
-                                                >
-                                                    <option value="efectivo">💵 Efectivo</option>
-                                                    <option value="tarjeta">💳 Tarjeta</option>
-                                                    <option value="transferencia">🏦 Transferencia</option>
-                                                </select>
+                                                <label className="block text-gray-700 text-sm font-bold mb-2">💳 Método</label>
+                                                <div className="grid grid-cols-3 gap-3">
+                                                    <button
+                                                        onClick={() => setFormData({...formData, paymentMethod: 'efectivo'})}
+                                                        className={`p-3 rounded-2xl font-bold transition-all ${
+                                                            formData.paymentMethod === 'efectivo' 
+                                                            ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white' 
+                                                            : 'bg-gray-100 text-gray-600'
+                                                        }`}
+                                                    >
+                                                        💵 Efectivo
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setFormData({...formData, paymentMethod: 'tarjeta'})}
+                                                        className={`p-3 rounded-2xl font-bold transition-all ${
+                                                            formData.paymentMethod === 'tarjeta' 
+                                                            ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white' 
+                                                            : 'bg-gray-100 text-gray-600'
+                                                        }`}
+                                                    >
+                                                        💳 Tarjeta
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setFormData({...formData, paymentMethod: 'transferencia'})}
+                                                        className={`p-3 rounded-2xl font-bold transition-all ${
+                                                            formData.paymentMethod === 'transferencia' 
+                                                            ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white' 
+                                                            : 'bg-gray-100 text-gray-600'
+                                                        }`}
+                                                    >
+                                                        🏦 Transfer
+                                                    </button>
+                                                </div>
                                             </div>
 
-                                            <div className="flex gap-3 pt-2">
-                                                <button
-                                                    onClick={saveExpense}
-                                                    className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl p-3 font-bold active:scale-95 transition-transform"
-                                                >
-                                                    Guardar
-                                                </button>
-                                                <button
-                                                    onClick={() => setShowForm(false)}
-                                                    className="flex-1 bg-slate-200 text-slate-700 rounded-xl p-3 font-bold active:scale-95 transition-transform"
-                                                >
-                                                    Cancelar
-                                                </button>
-                                            </div>
+                                            <button
+                                                onClick={saveExpense}
+                                                className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-2xl p-4 font-bold text-lg active:scale-95 transition-transform shadow-lg"
+                                            >
+                                                Guardar Gasto
+                                            </button>
                                         </div>
                                     </div>
                                 )}
 
-                                {/* Expenses List */}
-                                <div className="space-y-3">
-                                    <h3 className="font-bold text-lg text-slate-800 mb-3">Gastos Recientes</h3>
+                                {/* Recent Expenses */}
+                                <div>
+                                    <h3 className="text-white font-bold mb-4">Recientes</h3>
                                     {expenses.length === 0 ? (
-                                        <div className="bg-white rounded-2xl p-8 text-center border-2 border-purple-100">
-                                            <div className="text-6xl mb-3">📊</div>
-                                            <p className="text-slate-500">Aún no tienes gastos registrados</p>
-                                            <p className="text-sm text-slate-400 mt-1">¡Comienza ahora!</p>
+                                        <div className="glass-card rounded-3xl p-8 text-center">
+                                            <span className="text-6xl mb-3 block opacity-50">📊</span>
+                                            <p className="text-white opacity-80">No hay gastos aún</p>
+                                            <p className="text-white text-sm opacity-60 mt-2">¡Comienza a registrar!</p>
                                         </div>
                                     ) : (
-                                        [...expenses].reverse().slice(0, 10).map(expense => (
-                                            <div key={expense.id} className="bg-white rounded-xl p-4 shadow-lg border-2 border-purple-100">
-                                                <div className="flex justify-between items-start mb-2">
-                                                    <div className="flex-1">
-                                                        <div className="font-bold text-lg text-slate-800">
-                                                            ${expense.amount.toLocaleString('es-CO')}
+                                        <div className="space-y-3">
+                                            {[...expenses].reverse().slice(0, 10).map(expense => (
+                                                <div key={expense.id} className="expense-card rounded-2xl p-4 shadow-lg">
+                                                    <div className="flex items-center gap-4">
+                                                        <div 
+                                                            className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
+                                                            style={{ background: `${expense.category.color}20` }}
+                                                        >
+                                                            {expense.category.icon}
                                                         </div>
-                                                        <div className="text-sm text-slate-600">{expense.description}</div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="font-bold text-gray-800 truncate">{expense.description}</p>
+                                                            <p className="text-xs text-gray-500">
+                                                                {expense.category.name} • {new Date(expense.date).toLocaleDateString('es-CO')}
+                                                            </p>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <p className="font-bold text-lg gradient-text">
+                                                                ${expense.amount.toLocaleString('es-CO')}
+                                                            </p>
+                                                            <button
+                                                                onClick={() => deleteExpense(expense.id)}
+                                                                className="text-red-400 text-xs active:scale-90 transition-transform"
+                                                            >
+                                                                Eliminar
+                                                            </button>
+                                                        </div>
                                                     </div>
-                                                    <button
-                                                        onClick={() => deleteExpense(expense.id)}
-                                                        className="text-red-500 text-xl active:scale-90 transition-transform p-2"
-                                                    >
-                                                        🗑️
-                                                    </button>
                                                 </div>
-                                                <div className="flex items-center justify-between text-xs">
-                                                    <span className={`bg-gradient-to-r ${expense.category.color} text-white px-3 py-1 rounded-full font-semibold`}>
-                                                        {expense.category.name}
-                                                    </span>
-                                                    <span className="text-slate-500">
-                                                        {new Date(expense.date).toLocaleDateString('es-CO')}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        ))
+                                            ))}
+                                        </div>
                                     )}
                                 </div>
                             </>
                         )}
-
-                        {activeTab === 'charts' && (
-                            <div className="space-y-6">
-                                <h2 className="text-2xl font-bold text-slate-800 mb-4">📊 Análisis y Gráficos</h2>
-                                
-                                {expenses.length === 0 ? (
-                                    <div className="bg-white rounded-2xl p-8 text-center border-2 border-purple-100">
-                                        <div className="text-6xl mb-3">📈</div>
-                                        <p className="text-slate-500">No hay datos suficientes para mostrar gráficos</p>
-                                        <p className="text-sm text-slate-400 mt-1">Registra algunos gastos primero</p>
-                                    </div>
-                                ) : (
-                                    <>
-                                        {/* Line Chart */}
-                                        <div className="bg-white rounded-2xl p-4 shadow-xl border-2 border-purple-200">
-                                            <h3 className="font-bold text-lg mb-3 text-slate-800">📈 Evolución del Mes</h3>
-                                            <div style={{ height: '250px' }}>
-                                                <canvas id="lineChart"></canvas>
-                                            </div>
-                                        </div>
-
-                                        {/* Bar Chart */}
-                                        <div className="bg-white rounded-2xl p-4 shadow-xl border-2 border-purple-200">
-                                            <h3 className="font-bold text-lg mb-3 text-slate-800">📊 Gastos vs Presupuesto</h3>
-                                            <div style={{ height: '300px' }}>
-                                                <canvas id="categoryChart"></canvas>
-                                            </div>
-                                        </div>
-
-                                        {/* Pie Chart */}
-                                        <div className="bg-white rounded-2xl p-4 shadow-xl border-2 border-purple-200">
-                                            <h3 className="font-bold text-lg mb-3 text-slate-800">🎯 Distribución por Categoría</h3>
-                                            <div style={{ height: '300px' }}>
-                                                <canvas id="pieChart"></canvas>
-                                            </div>
-                                        </div>
-
-                                        {/* Category Details */}
-                                        <div className="bg-white rounded-2xl p-4 shadow-xl border-2 border-purple-200">
-                                            <h3 className="font-bold text-lg mb-3 text-slate-800">💰 Detalle por Categoría</h3>
-                                            <div className="space-y-2">
-                                                {categories.map(cat => {
-                                                    const total = getCategoryTotal(cat.id);
-                                                    const budget = budgets[cat.id] || 0;
-                                                    const percentage = budget > 0 ? (total / budget) * 100 : 0;
-                                                    
-                                                    if (total === 0) return null;
-                                                    
-                                                    return (
-                                                        <div key={cat.id} className="border-b border-slate-100 pb-2">
-                                                            <div className="flex justify-between items-center mb-1">
-                                                                <span className="text-sm font-semibold">{cat.name}</span>
-                                                                <span className="text-sm font-bold">${total.toLocaleString('es-CO')}</span>
-                                                            </div>
-                                                            <div className="flex items-center gap-2">
-                                                                <div className="flex-1 bg-slate-200 rounded-full h-2">
-                                                                    <div 
-                                                                        className={`h-2 rounded-full ${percentage > 100 ? 'bg-red-500' : 'bg-gradient-to-r ' + cat.color}`}
-                                                                        style={{ width: `${Math.min(percentage, 100)}%` }}
-                                                                    ></div>
-                                                                </div>
-                                                                <span className={`text-xs font-semibold ${percentage > 100 ? 'text-red-500' : 'text-slate-500'}`}>
-                                                                    {percentage.toFixed(0)}%
-                                                                </span>
-                                                            </div>
-                                                            <div className="text-xs text-slate-500 mt-1">
-                                                                Presupuesto: ${budget.toLocaleString('es-CO')}
-                                                            </div>
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
-                                        </div>
-                                    </>
-                                )}
-                            </div>
-                        )}
-
-                        {activeTab === 'export' && (
-                            <div className="space-y-4">
-                                <h2 className="text-2xl font-bold text-slate-800 mb-4">📥 Exportar Informes</h2>
-                                
-                                <div className="bg-white rounded-2xl p-6 shadow-xl border-2 border-purple-200">
-                                    <h3 className="font-bold text-lg mb-4 text-slate-800">Descarga tus datos</h3>
-                                    <p className="text-sm text-slate-600 mb-4">
-                                        Exporta tus gastos en diferentes formatos para análisis o respaldo.
-                                    </p>
-                                    
-                                    <div className="space-y-3">
-                                        <button
-                                            onClick={exportToPDF}
-                                            className="w-full bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-xl p-4 font-bold active:scale-95 transition-transform flex items-center justify-center gap-2"
-                                        >
-                                            <span>📄</span>
-                                            <span>Descargar PDF</span>
-                                        </button>
-                                        
-                                        <button
-                                            onClick={exportToCSV}
-                                            className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl p-4 font-bold active:scale-95 transition-transform flex items-center justify-center gap-2"
-                                        >
-                                            <span>📊</span>
-                                            <span>Descargar Excel (CSV)</span>
-                                        </button>
-                                        
-                                        <button
-                                            onClick={exportToJSON}
-                                            className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl p-4 font-bold active:scale-95 transition-transform flex items-center justify-center gap-2"
-                                        >
-                                            <span>💾</span>
-                                            <span>Descargar JSON</span>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div className="bg-gradient-to-r from-amber-100 to-yellow-100 rounded-2xl p-4 border-2 border-yellow-300">
-                                    <h4 className="font-bold text-sm mb-2">ℹ️ Información sobre formatos</h4>
-                                    <ul className="text-xs text-slate-700 space-y-1">
-                                        <li>• <strong>PDF:</strong> Informe completo listo para imprimir</li>
-                                        <li>• <strong>CSV:</strong> Para abrir en Excel o Google Sheets</li>
-                                        <li>• <strong>JSON:</strong> Para respaldo completo de datos</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        )}
                     </div>
 
                     {/* Bottom Navigation */}
-                    <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-purple-200 shadow-lg">
-                        <div className="flex justify-around items-center p-2 max-w-2xl mx-auto">
+                    <div className="fixed bottom-0 left-0 right-0 glass-card border-t border-white border-opacity-20">
+                        <div className="flex justify-around items-center p-3 max-w-2xl mx-auto">
                             <button
                                 onClick={() => setActiveTab('home')}
-                                className={`flex flex-col items-center p-2 rounded-lg flex-1 ${activeTab === 'home' ? 'tab-active text-purple-600' : 'text-slate-500'}`}
+                                className={`flex flex-col items-center p-3 rounded-2xl flex-1 transition-all ${
+                                    activeTab === 'home' ? 'tab-active' : ''
+                                }`}
                             >
                                 <span className="text-2xl mb-1">🏠</span>
-                                <span className="text-xs font-semibold">Inicio</span>
+                                <span className="text-xs font-bold text-white">Inicio</span>
                             </button>
                             <button
-                                onClick={() => setActiveTab('charts')}
-                                className={`flex flex-col items-center p-2 rounded-lg flex-1 ${activeTab === 'charts' ? 'tab-active text-purple-600' : 'text-slate-500'}`}
+                                onClick={() => setActiveTab('stats')}
+                                className={`flex flex-col items-center p-3 rounded-2xl flex-1 transition-all ${
+                                    activeTab === 'stats' ? 'tab-active' : ''
+                                }`}
                             >
                                 <span className="text-2xl mb-1">📊</span>
-                                <span className="text-xs font-semibold">Gráficos</span>
+                                <span className="text-xs font-bold text-white">Stats</span>
                             </button>
                             <button
-                                onClick={() => setActiveTab('export')}
-                                className={`flex flex-col items-center p-2 rounded-lg flex-1 ${activeTab === 'export' ? 'tab-active text-purple-600' : 'text-slate-500'}`}
+                                onClick={() => setActiveTab('profile')}
+                                className={`flex flex-col items-center p-3 rounded-2xl flex-1 transition-all ${
+                                    activeTab === 'profile' ? 'tab-active' : ''
+                                }`}
                             >
-                                <span className="text-2xl mb-1">📥</span>
-                                <span className="text-xs font-semibold">Exportar</span>
+                                <span className="text-2xl mb-1">👤</span>
+                                <span className="text-xs font-bold text-white">Perfil</span>
                             </button>
                         </div>
                     </div>
