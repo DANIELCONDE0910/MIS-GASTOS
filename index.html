@@ -6,7 +6,6 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Mis Gastos">
-    <!-- Custom App Icon - Minimalist $100 Bill -->
     <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23667eea;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23764ba2;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='22' fill='url(%23grad)'/%3E%3Crect x='15' y='30' width='70' height='40' rx='3' fill='%235a67d8' opacity='0.3'/%3E%3Crect x='20' y='35' width='60' height='30' rx='2' fill='white' opacity='0.95'/%3E%3Ctext x='50' y='55' font-family='Arial' font-size='20' font-weight='bold' text-anchor='middle' fill='%23667eea'%3E%24100%3C/text%3E%3Ccircle cx='28' cy='50' r='6' fill='none' stroke='%23667eea' stroke-width='1.5' opacity='0.6'/%3E%3Ccircle cx='72' cy='50' r='6' fill='none' stroke='%23667eea' stroke-width='1.5' opacity='0.6'/%3E%3C/svg%3E">
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23667eea;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23764ba2;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='22' fill='url(%23grad)'/%3E%3Crect x='15' y='30' width='70' height='40' rx='3' fill='%235a67d8' opacity='0.3'/%3E%3Crect x='20' y='35' width='60' height='30' rx='2' fill='white' opacity='0.95'/%3E%3Ctext x='50' y='55' font-family='Arial' font-size='20' font-weight='bold' text-anchor='middle' fill='%23667eea'%3E%24100%3C/text%3E%3Ccircle cx='28' cy='50' r='6' fill='none' stroke='%23667eea' stroke-width='1.5' opacity='0.6'/%3E%3Ccircle cx='72' cy='50' r='6' fill='none' stroke='%23667eea' stroke-width='1.5' opacity='0.6'/%3E%3C/svg%3E">
     <title>Control de Gastos Personales</title>
@@ -26,18 +25,26 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
-        .neo-card {
-            background: #2d3748;
-            box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.3), -8px -8px 16px rgba(255, 255, 255, 0.05);
-        }
         .category-icon {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(5px);
             transition: all 0.3s ease;
         }
         .category-icon:active {
-            transform: scale(0.95);
-            background: rgba(255, 255, 255, 0.2);
+            animation: bounce 0.5s ease;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            25% { transform: scale(0.9) rotate(-5deg); }
+            50% { transform: scale(1.1) rotate(5deg); }
+            75% { transform: scale(0.95) rotate(-3deg); }
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(1.3); opacity: 0; }
+        }
+        .pulse-ring {
+            animation: pulse-ring 1s ease-out infinite;
         }
         .expense-card {
             background: rgba(255, 255, 255, 0.95);
@@ -63,6 +70,25 @@
             background: rgba(255, 255, 255, 0.25) !important;
             backdrop-filter: blur(10px);
         }
+        .profile-photo {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        .profile-placeholder {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            border: 3px solid white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
     </style>
 </head>
 <body>
@@ -78,19 +104,26 @@
         function ExpenseApp() {
             const [expenses, setExpenses] = useState([]);
             const [activeTab, setActiveTab] = useState('home');
+            const [userName, setUserName] = useState('');
+            const [userPhoto, setUserPhoto] = useState('');
+            const [showProfileModal, setShowProfileModal] = useState(false);
+            const [tempName, setTempName] = useState('');
+            const fileInputRef = useRef(null);
+            
             const [categories] = useState([
-                { id: 1, name: 'Alimentación', icon: '🍔', color: '#FF6B6B', bgColor: 'rgb(255, 107, 107)', budget: 500000 },
-                { id: 2, name: 'Deporte', icon: '⚽', color: '#4ECDC4', bgColor: 'rgb(78, 205, 196)', budget: 200000 },
-                { id: 3, name: 'Servicios', icon: '💡', color: '#FFD93D', bgColor: 'rgb(255, 217, 61)', budget: 300000 },
-                { id: 4, name: 'Arriendo', icon: '🏠', color: '#95E1D3', bgColor: 'rgb(149, 225, 211)', budget: 1500000 },
-                { id: 5, name: 'Ropa', icon: '👕', color: '#F38181', bgColor: 'rgb(243, 129, 129)', budget: 300000 },
-                { id: 6, name: 'Viajes', icon: '✈️', color: '#AA96DA', bgColor: 'rgb(170, 150, 218)', budget: 400000 },
-                { id: 7, name: 'Diversión', icon: '🎉', color: '#FCBAD3', bgColor: 'rgb(252, 186, 211)', budget: 250000 },
-                { id: 8, name: 'Ocio', icon: '📺', color: '#A8D8EA', bgColor: 'rgb(168, 216, 234)', budget: 200000 },
-                { id: 9, name: 'Transporte', icon: '🚕', color: '#FFAAA5', bgColor: 'rgb(255, 170, 165)', budget: 300000 },
-                { id: 10, name: 'Salud', icon: '💊', color: '#90CCF4', bgColor: 'rgb(144, 204, 244)', budget: 200000 },
-                { id: 11, name: 'Hormigas', icon: '🐜', color: '#B4A7D6', bgColor: 'rgb(180, 167, 214)', budget: 150000 },
-                { id: 12, name: 'Aseo', icon: '🧹', color: '#FFD6A5', bgColor: 'rgb(255, 214, 165)', budget: 100000 }
+                { id: 1, name: 'Alimentación', icon: '🍔', color: '#FF6B6B', budget: 500000 },
+                { id: 2, name: 'Deporte', icon: '⚽', color: '#4ECDC4', budget: 200000 },
+                { id: 3, name: 'Servicios', icon: '💡', color: '#FFD93D', budget: 300000 },
+                { id: 4, name: 'Arriendo', icon: '🏠', color: '#95E1D3', budget: 1500000 },
+                { id: 5, name: 'Ropa', icon: '👕', color: '#F38181', budget: 300000 },
+                { id: 6, name: 'Viajes', icon: '✈️', color: '#AA96DA', budget: 400000 },
+                { id: 7, name: 'Diversión', icon: '🎉', color: '#FCBAD3', budget: 250000 },
+                { id: 8, name: 'Ocio', icon: '📺', color: '#A8D8EA', budget: 200000 },
+                { id: 9, name: 'Transporte', icon: '🚗', color: '#FFAAA5', budget: 300000 },
+                { id: 10, name: 'Salud', icon: '💊', color: '#90CCF4', budget: 200000 },
+                { id: 11, name: 'Hormigas', icon: '🐜', color: '#B4A7D6', budget: 150000 },
+                { id: 12, name: 'Aseo', icon: '🧹', color: '#FFD6A5', budget: 100000 },
+                { id: 13, name: 'Domicilios', icon: '🛵', color: '#7BF1A8', budget: 200000 }
             ]);
             const [showForm, setShowForm] = useState(false);
             const [motivationalQuote, setMotivationalQuote] = useState('');
@@ -104,14 +137,14 @@
             const donutChartRef = useRef(null);
 
             const quotes = [
-                { text: "Cada gasto registrado te acerca a tus metas", emoji: "🎯" },
-                { text: "El control financiero es libertad", emoji: "💰" },
-                { text: "¡Excelente trabajo! Sigue así", emoji: "🚀" },
-                { text: "Tus metas están más cerca", emoji: "⭐" },
-                { text: "Pequeños pasos, grandes logros", emoji: "👣" },
-                { text: "Tu futuro yo te lo agradecerá", emoji: "🙏" },
-                { text: "Domina tus finanzas, domina tu vida", emoji: "💪" },
-                { text: "Cada peso cuenta hacia tu libertad", emoji: "🔓" }
+                { text: "Cada peso cuenta 💪", emoji: "🎯" },
+                { text: "Control = Libertad 🔓", emoji: "💰" },
+                { text: "¡Excelente trabajo! 🌟", emoji: "🚀" },
+                { text: "Tus metas están cerca ✨", emoji: "⭐" },
+                { text: "Sigue así, lo haces genial", emoji: "👣" },
+                { text: "Tu futuro te lo agradece", emoji: "🙏" },
+                { text: "Domina tus finanzas 💎", emoji: "💪" },
+                { text: "Cada día más cerca 🎯", emoji: "🔓" }
             ];
 
             useEffect(() => {
@@ -130,6 +163,19 @@
                     setBudgets(defaultBudgets);
                     localStorage.setItem('budgets', JSON.stringify(defaultBudgets));
                 }
+                
+                const savedName = localStorage.getItem('userName');
+                if (savedName) {
+                    setUserName(savedName);
+                } else {
+                    setUserName('Daniel');
+                }
+                
+                const savedPhoto = localStorage.getItem('userPhoto');
+                if (savedPhoto) {
+                    setUserPhoto(savedPhoto);
+                }
+                
                 const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
                 setMotivationalQuote(randomQuote);
             }, []);
@@ -141,6 +187,27 @@
                     }, 100);
                 }
             }, [activeTab, expenses]);
+
+            const handlePhotoUpload = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        setUserPhoto(reader.result);
+                        localStorage.setItem('userPhoto', reader.result);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+
+            const saveProfile = () => {
+                if (tempName.trim()) {
+                    setUserName(tempName.trim());
+                    localStorage.setItem('userName', tempName.trim());
+                }
+                setShowProfileModal(false);
+                setTempName('');
+            };
 
             const saveExpense = () => {
                 if (!formData.amount || !formData.description || !formData.category) {
@@ -264,13 +331,14 @@
                 doc.text('Control de Gastos Personales', 20, 20);
                 
                 doc.setFontSize(12);
-                doc.text(`Informe: ${new Date().toLocaleDateString('es-CO')}`, 20, 30);
-                doc.text(`Total: $${getTotalMonth().toLocaleString('es-CO')}`, 20, 40);
+                doc.text(`Usuario: ${userName}`, 20, 30);
+                doc.text(`Informe: ${new Date().toLocaleDateString('es-CO')}`, 20, 37);
+                doc.text(`Total: $${getTotalMonth().toLocaleString('es-CO')}`, 20, 44);
 
                 doc.setFontSize(14);
-                doc.text('Resumen:', 20, 55);
+                doc.text('Resumen:', 20, 58);
 
-                let y = 65;
+                let y = 68;
                 categories.forEach(cat => {
                     const total = getCategoryTotal(cat.id);
                     if (total > 0) {
@@ -280,25 +348,34 @@
                     }
                 });
 
-                doc.save(`gastos_${new Date().toLocaleDateString('es-CO')}.pdf`);
+                doc.save(`gastos_${userName}_${new Date().toLocaleDateString('es-CO')}.pdf`);
             };
 
             return (
                 <div className="min-h-screen pb-24">
                     {/* Header */}
                     <div className="p-6 pb-8">
-                        <div className="flex justify-between items-center mb-6">
-                            <div>
-                                <h1 className="text-white text-3xl font-bold mb-1">Hola! 👋</h1>
-                                <p className="text-white text-sm opacity-80">
-                                    {new Date().toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' })}
-                                </p>
+                        <div className="flex justify-between items-start mb-6">
+                            <div className="flex-1">
+                                <div className="flex items-center gap-3 mb-3">
+                                    <h1 className="text-white text-3xl font-bold">Hola, {userName}! 👋</h1>
+                                </div>
+                                <div className="glass-card rounded-2xl p-3 inline-block">
+                                    <p className="text-white text-sm font-medium">💬 {motivationalQuote.text}</p>
+                                </div>
                             </div>
                             <button 
-                                onClick={exportToPDF}
-                                className="glass-card p-3 rounded-2xl text-white active:scale-95 transition-transform"
+                                onClick={() => setShowProfileModal(true)}
+                                className="relative"
                             >
-                                <span className="text-2xl">📊</span>
+                                {userPhoto ? (
+                                    <img src={userPhoto} alt="Profile" className="profile-photo" />
+                                ) : (
+                                    <div className="profile-placeholder">
+                                        👤
+                                    </div>
+                                )}
+                                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-400 rounded-full border-2 border-white"></div>
                             </button>
                         </div>
 
@@ -312,24 +389,16 @@
                                             ${getTotalMonth().toLocaleString('es-CO')}
                                         </h2>
                                         <p className="text-white text-xs opacity-60">
-                                            {expenses.filter(e => e.month === new Date().toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit' })).length} transacciones
+                                            {expenses.filter(e => e.month === new Date().toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit' })).length} transacciones • {new Date().toLocaleDateString('es-CO', { month: 'long' })}
                                         </p>
                                     </div>
                                     <div className="absolute -right-8 -bottom-8 text-9xl opacity-10 float-animation">💰</div>
                                 </div>
 
-                                {/* Motivational Quote */}
-                                <div className="glass-card rounded-2xl p-4 mb-6">
-                                    <div className="flex items-center gap-3">
-                                        <span className="text-3xl">{motivationalQuote.emoji}</span>
-                                        <p className="text-white text-sm font-medium flex-1">"{motivationalQuote.text}"</p>
-                                    </div>
-                                </div>
-
                                 {/* Donut Chart */}
                                 {expenses.length > 0 && (
                                     <div className="glass-card rounded-3xl p-6 mb-6">
-                                        <h3 className="text-white font-bold mb-4">Distribución</h3>
+                                        <h3 className="text-white font-bold mb-4">Distribución por Categoría</h3>
                                         <div className="relative" style={{ height: '250px' }}>
                                             <canvas id="donutChart"></canvas>
                                             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -344,7 +413,7 @@
 
                                 {/* Categories Grid */}
                                 <div className="mb-6">
-                                    <h3 className="text-white font-bold mb-4">Categorías</h3>
+                                    <h3 className="text-white font-bold mb-4">Categorías Rápidas</h3>
                                     <div className="grid grid-cols-4 gap-3">
                                         {categories.map(cat => {
                                             const total = getCategoryTotal(cat.id);
@@ -355,17 +424,17 @@
                                                             setFormData({...formData, category: cat.id.toString()});
                                                             setShowForm(true);
                                                         }}
-                                                        className="category-icon w-full aspect-square rounded-2xl flex flex-col items-center justify-center mb-2"
-                                                        style={{ background: `${cat.color}20` }}
+                                                        className="category-icon w-full aspect-square rounded-2xl flex flex-col items-center justify-center mb-2 relative"
+                                                        style={{ background: `${cat.color}25` }}
                                                     >
                                                         <span className="text-3xl mb-1">{cat.icon}</span>
                                                         {total > 0 && (
-                                                            <span className="text-white text-xs font-bold">
+                                                            <span className="text-white text-xs font-bold bg-black bg-opacity-30 px-2 py-0.5 rounded-full">
                                                                 ${(total/1000).toFixed(0)}K
                                                             </span>
                                                         )}
                                                     </button>
-                                                    <p className="text-white text-xs opacity-80">{cat.name}</p>
+                                                    <p className="text-white text-xs opacity-80 truncate">{cat.name}</p>
                                                 </div>
                                             );
                                         })}
@@ -427,8 +496,9 @@
                                                 <label className="block text-gray-700 text-sm font-bold mb-2">💳 Método</label>
                                                 <div className="grid grid-cols-3 gap-3">
                                                     <button
+                                                        type="button"
                                                         onClick={() => setFormData({...formData, paymentMethod: 'efectivo'})}
-                                                        className={`p-3 rounded-2xl font-bold transition-all ${
+                                                        className={`p-3 rounded-2xl font-bold transition-all text-sm ${
                                                             formData.paymentMethod === 'efectivo' 
                                                             ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white' 
                                                             : 'bg-gray-100 text-gray-600'
@@ -437,8 +507,9 @@
                                                         💵 Efectivo
                                                     </button>
                                                     <button
+                                                        type="button"
                                                         onClick={() => setFormData({...formData, paymentMethod: 'tarjeta'})}
-                                                        className={`p-3 rounded-2xl font-bold transition-all ${
+                                                        className={`p-3 rounded-2xl font-bold transition-all text-sm ${
                                                             formData.paymentMethod === 'tarjeta' 
                                                             ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white' 
                                                             : 'bg-gray-100 text-gray-600'
@@ -447,8 +518,9 @@
                                                         💳 Tarjeta
                                                     </button>
                                                     <button
+                                                        type="button"
                                                         onClick={() => setFormData({...formData, paymentMethod: 'transferencia'})}
-                                                        className={`p-3 rounded-2xl font-bold transition-all ${
+                                                        className={`p-3 rounded-2xl font-bold transition-all text-sm ${
                                                             formData.paymentMethod === 'transferencia' 
                                                             ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white' 
                                                             : 'bg-gray-100 text-gray-600'
@@ -471,7 +543,15 @@
 
                                 {/* Recent Expenses */}
                                 <div>
-                                    <h3 className="text-white font-bold mb-4">Recientes</h3>
+                                    <div className="flex justify-between items-center mb-4">
+                                        <h3 className="text-white font-bold">Gastos Recientes</h3>
+                                        <button 
+                                            onClick={exportToPDF}
+                                            className="glass-card px-3 py-1.5 rounded-xl text-white text-sm font-bold active:scale-95 transition-transform"
+                                        >
+                                            📄 PDF
+                                        </button>
+                                    </div>
                                     {expenses.length === 0 ? (
                                         <div className="glass-card rounded-3xl p-8 text-center">
                                             <span className="text-6xl mb-3 block opacity-50">📊</span>
@@ -516,6 +596,67 @@
                         )}
                     </div>
 
+                    {/* Profile Modal */}
+                    {showProfileModal && (
+                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                            <div className="expense-card rounded-3xl p-6 max-w-md w-full">
+                                <h3 className="gradient-text font-bold text-xl mb-4">Mi Perfil</h3>
+                                
+                                <div className="flex flex-col items-center mb-6">
+                                    {userPhoto ? (
+                                        <img src={userPhoto} alt="Profile" className="w-24 h-24 rounded-full object-cover border-4 border-purple-200 mb-3" />
+                                    ) : (
+                                        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-400 to-indigo-400 flex items-center justify-center text-4xl mb-3">
+                                            👤
+                                        </div>
+                                    )}
+                                    <input 
+                                        type="file" 
+                                        ref={fileInputRef}
+                                        onChange={handlePhotoUpload}
+                                        accept="image/*"
+                                        className="hidden"
+                                    />
+                                    <button
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white px-4 py-2 rounded-xl font-bold text-sm active:scale-95 transition-transform"
+                                    >
+                                        📸 Cambiar Foto
+                                    </button>
+                                </div>
+
+                                <div className="mb-4">
+                                    <label className="block text-gray-700 text-sm font-bold mb-2">Tu Nombre</label>
+                                    <input
+                                        type="text"
+                                        value={tempName || userName}
+                                        onChange={(e) => setTempName(e.target.value)}
+                                        className="w-full p-4 border-2 border-gray-200 rounded-2xl focus:border-purple-400 focus:outline-none"
+                                        placeholder="Ej: Daniel"
+                                    />
+                                </div>
+
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={saveProfile}
+                                        className="flex-1 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-2xl p-3 font-bold active:scale-95 transition-transform"
+                                    >
+                                        Guardar
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setShowProfileModal(false);
+                                            setTempName('');
+                                        }}
+                                        className="flex-1 bg-gray-200 text-gray-700 rounded-2xl p-3 font-bold active:scale-95 transition-transform"
+                                    >
+                                        Cancelar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Bottom Navigation */}
                     <div className="fixed bottom-0 left-0 right-0 glass-card border-t border-white border-opacity-20">
                         <div className="flex justify-around items-center p-3 max-w-2xl mx-auto">
@@ -538,7 +679,7 @@
                                 <span className="text-xs font-bold text-white">Stats</span>
                             </button>
                             <button
-                                onClick={() => setActiveTab('profile')}
+                                onClick={() => setShowProfileModal(true)}
                                 className={`flex flex-col items-center p-3 rounded-2xl flex-1 transition-all ${
                                     activeTab === 'profile' ? 'tab-active' : ''
                                 }`}
