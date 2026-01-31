@@ -36,14 +36,14 @@
             backdrop-filter: blur(10px);
             border: 2px solid rgba(255, 255, 255, 0.3);
             transition: all 0.3s ease;
-            cursor: grab;
         }
-        .category-icon:active {
+        .category-icon.sortable-chosen {
             cursor: grabbing;
-            animation: bounce 0.5s ease;
+            transform: scale(1.05);
+            opacity: 0.8;
         }
         .category-icon.sortable-ghost {
-            opacity: 0.4;
+            opacity: 0.3;
         }
         @keyframes bounce {
             0%, 100% { transform: scale(1); }
@@ -139,6 +139,7 @@
             const [showProfileModal, setShowProfileModal] = useState(false);
             const [editingExpense, setEditingExpense] = useState(null);
             const [historyFilter, setHistoryFilter] = useState('month');
+            const [reportPeriod, setReportPeriod] = useState('month');
             const fileInputRef = useRef(null);
             const categoriesGridRef = useRef(null);
             
@@ -149,7 +150,6 @@
                 { id: 4, name: 'Arriendo', icon: '🏠', color: '#95E1D3', budget: 1500000 },
                 { id: 5, name: 'Ropa', icon: '👕', color: '#F38181', budget: 300000 },
                 { id: 6, name: 'Viajes', icon: '✈️', color: '#AA96DA', budget: 400000 },
-                { id: 7, name: 'Diversión', icon: '🎉', color: '#FCBAD3', budget: 250000 },
                 { id: 8, name: 'Ocio', icon: '📺', color: '#A8D8EA', budget: 200000 },
                 { id: 9, name: 'Transporte', icon: '🚗', color: '#FFAAA5', budget: 300000 },
                 { id: 10, name: 'Salud', icon: '💊', color: '#90CCF4', budget: 200000 },
@@ -212,8 +212,12 @@
             useEffect(() => {
                 if (categoriesGridRef.current && activeTab === 'home') {
                     const sortable = new Sortable(categoriesGridRef.current, {
-                        animation: 150,
+                        animation: 200,
+                        delay: 500,
+                        delayOnTouchOnly: true,
+                        touchStartThreshold: 5,
                         ghostClass: 'sortable-ghost',
+                        chosenClass: 'sortable-chosen',
                         onEnd: (evt) => {
                             const newCategories = [...categories];
                             const [moved] = newCategories.splice(evt.oldIndex, 1);
@@ -344,6 +348,213 @@
             };
 
             const getFilteredTotal = () => getFilteredExpenses().reduce((sum, e) => sum + e.amount, 0);
+
+            const getReportExpenses = () => {
+                const now = new Date();
+                return expenses.filter(exp => {
+                    const expDate = new Date(exp.date);
+                    switch(reportPeriod) {
+                        case 'week': return expDate >= new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                        case 'month': return expDate.getMonth() === now.getMonth() && expDate.getFullYear() === now.getFullYear();
+                        case 'year': return expDate.getFullYear() === now.getFullYear();
+                        default: return true;
+                    }
+                });
+            };
+
+            const generateIntelligentReport = () => {
+                if (expenses.length === 0) {
+                    alert('No hay gastos para generar informe');
+                    return;
+                }
+
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                const reportExpenses = getReportExpenses();
+                const totalReport = reportExpenses.reduce((sum, e) => sum + e.amount, 0);
+                
+                const periodNames = { week: 'Semanal', month: 'Mensual', year: 'Anual' };
+                
+                doc.setFontSize(20);
+                doc.setTextColor(102, 126, 234);
+                doc.text('Informe Financiero Inteligente', 105, 20, { align: 'center' });
+                
+                doc.setFontSize(12);
+                doc.setTextColor(100, 100, 100);
+                doc.text(`Periodo: ${periodNames[reportPeriod]}`, 105, 28, { align: 'center' });
+                doc.text(`Generado: ${new Date().toLocaleDateString('es-CO', { dateStyle: 'full' })}`, 105, 34, { align: 'center' });
+                doc.text(`Usuario: ${userName}`, 105, 40, { align: 'center' });
+                
+                doc.setDrawColor(102, 126, 234);
+                doc.line(20, 45, 190, 45);
+                
+                doc.setFontSize(16);
+                doc.setTextColor(0, 0, 0);
+                doc.text('Resumen Ejecutivo', 20, 55);
+                
+                doc.setFontSize(11);
+                doc.setTextColor(60, 60, 60);
+                doc.text(`Total gastado: $${totalReport.toLocaleString('es-CO')}`, 25, 65);
+                doc.text(`Numero de transacciones: ${reportExpenses.length}`, 25, 72);
+                doc.text(`Gasto promedio: $${(totalReport / reportExpenses.length).toFixed(0).toLocaleString('es-CO')}`, 25, 79);
+                
+                const totalBudget = Object.values(budgets).reduce((a, b) => a + b, 0);
+                const budgetUsage = ((totalReport / totalBudget) * 100).toFixed(1);
+                doc.text(`Presupuesto usado: ${budgetUsage}%`, 25, 86);
+                
+                doc.setFontSize(14);
+                doc.setTextColor(0, 0, 0);
+                doc.text('Gastos por Categoria', 20, 100);
+                
+                let y = 108;
+                doc.setFontSize(10);
+                categories.forEach(cat => {
+                    const catExpenses = reportExpenses.filter(e => e.category.id === cat.id);
+                    const catTotal = catExpenses.reduce((sum, e) => sum + e.amount, 0);
+                    
+                    if (catTotal > 0) {
+                        const catBudget = budgets[cat.id] || 0;
+                        const catPercent = catBudget > 0 ? ((catTotal / catBudget) * 100).toFixed(0) : 0;
+                        
+                        doc.setTextColor(60, 60, 60);
+                        doc.text(`${cat.icon} ${cat.name}`, 25, y);
+                        doc.text(`$${catTotal.toLocaleString('es-CO')}`, 120, y);
+                        
+                        if (catPercent > 100) {
+                            doc.setTextColor(239, 68, 68);
+                            doc.text(`(${catPercent}% - ALERTA!)`, 155, y);
+                        } else if (catPercent > 80) {
+                            doc.setTextColor(251, 146, 60);
+                            doc.text(`(${catPercent}%)`, 155, y);
+                        } else {
+                            doc.setTextColor(34, 197, 94);
+                            doc.text(`(${catPercent}%)`, 155, y);
+                        }
+                        
+                        y += 7;
+                        
+                        if (y > 270) {
+                            doc.addPage();
+                            y = 20;
+                        }
+                    }
+                });
+                
+                y += 10;
+                if (y > 250) {
+                    doc.addPage();
+                    y = 20;
+                }
+                
+                doc.setFontSize(14);
+                doc.setTextColor(0, 0, 0);
+                doc.text('Analisis y Recomendaciones', 20, y);
+                
+                y += 10;
+                doc.setFontSize(10);
+                doc.setTextColor(60, 60, 60);
+                
+                const recommendations = [];
+                
+                categories.forEach(cat => {
+                    const catTotal = reportExpenses.filter(e => e.category.id === cat.id).reduce((sum, e) => sum + e.amount, 0);
+                    const catBudget = budgets[cat.id] || 0;
+                    const catPercent = catBudget > 0 ? (catTotal / catBudget) * 100 : 0;
+                    
+                    if (catPercent > 100) {
+                        recommendations.push(`⚠️  CRITICO: Has excedido el presupuesto de ${cat.name} en un ${(catPercent - 100).toFixed(0)}%. Considera reducir gastos en esta categoria.`);
+                    } else if (catPercent > 80) {
+                        recommendations.push(`⚡ ATENCION: Estas cerca del limite en ${cat.name} (${catPercent.toFixed(0)}%). Modera tus gastos para evitar excesos.`);
+                    }
+                });
+                
+                if (budgetUsage > 90) {
+                    recommendations.push(`🚨 Has usado el ${budgetUsage}% de tu presupuesto total. Es urgente reducir gastos para no exceder tu limite.`);
+                } else if (budgetUsage > 70) {
+                    recommendations.push(`📊 Has usado el ${budgetUsage}% de tu presupuesto. Vas por buen camino, mantente atento al gasto.`);
+                } else {
+                    recommendations.push(`✅ Excelente! Solo has usado el ${budgetUsage}% de tu presupuesto. Sigue asi y podras ahorrar este periodo.`);
+                }
+                
+                const topCategory = categories
+                    .map(cat => ({
+                        name: cat.name,
+                        total: reportExpenses.filter(e => e.category.id === cat.id).reduce((sum, e) => sum + e.amount, 0)
+                    }))
+                    .filter(c => c.total > 0)
+                    .sort((a, b) => b.total - a.total)[0];
+                
+                if (topCategory) {
+                    recommendations.push(`💡 Tu categoria de mayor gasto es ${topCategory.name} ($${topCategory.total.toLocaleString('es-CO')}). Analiza si puedes optimizar estos gastos.`);
+                }
+                
+                const avgDaily = totalReport / (reportPeriod === 'week' ? 7 : reportPeriod === 'month' ? 30 : 365);
+                recommendations.push(`📈 Tu gasto diario promedio es de $${avgDaily.toFixed(0).toLocaleString('es-CO')}. Mantener este ritmo te ayudara a cumplir tus metas.`);
+                
+                if (recommendations.length === 0) {
+                    recommendations.push(`✨ ¡Felicitaciones! Tus finanzas estan bien controladas. Continua con este excelente habito.`);
+                }
+                
+                recommendations.forEach(rec => {
+                    const lines = doc.splitTextToSize(rec, 170);
+                    lines.forEach(line => {
+                        if (y > 280) {
+                            doc.addPage();
+                            y = 20;
+                        }
+                        doc.text(line, 25, y);
+                        y += 6;
+                    });
+                    y += 3;
+                });
+                
+                y += 10;
+                if (y > 270) {
+                    doc.addPage();
+                    y = 20;
+                }
+                
+                doc.setFontSize(14);
+                doc.setTextColor(0, 0, 0);
+                doc.text('Consejos para Mejorar', 20, y);
+                
+                y += 10;
+                doc.setFontSize(10);
+                doc.setTextColor(60, 60, 60);
+                
+                const tips = [
+                    '1. Establece un presupuesto realista: Revisa tus gastos y ajusta los limites segun tus necesidades reales.',
+                    '2. Registra todos tus gastos: La disciplina de anotar cada gasto te ayudara a tomar conciencia.',
+                    '3. Identifica gastos innecesarios: Revisa gastos pequenos que se acumulan (cafe, snacks, suscripciones).',
+                    '4. Usa el metodo 50/30/20: 50% necesidades, 30% deseos, 20% ahorro.',
+                    '5. Revisa este informe regularmente: El seguimiento constante es clave para el exito financiero.'
+                ];
+                
+                tips.forEach(tip => {
+                    const lines = doc.splitTextToSize(tip, 170);
+                    lines.forEach(line => {
+                        if (y > 280) {
+                            doc.addPage();
+                            y = 20;
+                        }
+                        doc.text(line, 25, y);
+                        y += 6;
+                    });
+                    y += 2;
+                });
+                
+                const pageCount = doc.internal.getNumberOfPages();
+                for (let i = 1; i <= pageCount; i++) {
+                    doc.setPage(i);
+                    doc.setFontSize(8);
+                    doc.setTextColor(150, 150, 150);
+                    doc.text(`Pagina ${i} de ${pageCount}`, 105, 290, { align: 'center' });
+                    doc.text('Generado por Control de Gastos - Informe Inteligente', 105, 295, { align: 'center' });
+                }
+                
+                doc.save(`Informe_${periodNames[reportPeriod]}_${userName}_${new Date().toISOString().split('T')[0]}.pdf`);
+                alert('✅ Informe generado exitosamente!');
+            };
 
             const renderDonutChart = () => {
                 const canvas = document.getElementById('donutChart');
@@ -495,7 +706,7 @@
 
                                 <div className="mb-6">
                                     <h3 className="text-white font-bold mb-3">Registrar Rápido</h3>
-                                    <p className="text-cyan-200 text-xs mb-4 opacity-80">✨ Mantén presionado para reorganizar</p>
+                                    <p className="text-cyan-200 text-xs mb-4 opacity-80">✨ Mantén presionado 0.5s para reorganizar</p>
                                     <div ref={categoriesGridRef} className="grid grid-cols-4 gap-3">
                                         {categories.map(cat => {
                                             const total = getCategoryTotal(cat.id);
@@ -752,6 +963,33 @@
                                     </div>
                                 ) : (
                                     <>
+                                        <div className="glass-card-strong rounded-2xl p-4 mb-6">
+                                            <h3 className="text-white font-bold mb-3">📄 Generar Informe Inteligente</h3>
+                                            <p className="text-cyan-200 text-xs mb-4 opacity-80">Análisis completo con recomendaciones personalizadas</p>
+                                            <div className="grid grid-cols-3 gap-2 mb-4">
+                                                {['week', 'month', 'year'].map(period => (
+                                                    <button
+                                                        key={period}
+                                                        onClick={() => setReportPeriod(period)}
+                                                        className={`p-2 rounded-xl font-bold text-xs transition-all ${
+                                                            reportPeriod === period
+                                                            ? 'bg-gradient-to-r from-cyan-400 to-purple-500 text-white'
+                                                            : 'bg-white bg-opacity-20 text-white'
+                                                        }`}
+                                                    >
+                                                        {period === 'week' ? 'Semanal' : period === 'month' ? 'Mensual' : 'Anual'}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                            <button
+                                                onClick={generateIntelligentReport}
+                                                className="w-full bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-xl p-3 font-bold active:scale-95 transition-transform flex items-center justify-center gap-2"
+                                            >
+                                                <span>📊</span>
+                                                <span>Generar Informe PDF</span>
+                                            </button>
+                                        </div>
+
                                         <div className="grid grid-cols-2 gap-4 mb-6">
                                             {[
                                                 { label: 'Total Mes', value: `$${(getTotalMonth()/1000).toFixed(0)}K` },
