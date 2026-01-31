@@ -1,285 +1,1003 @@
-import React, { useState } from 'react';
-import { Database, DollarSign, Tag, Calendar, TrendingUp, User } from 'lucide-react';
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Mis Gastos">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23667eea;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23764ba2;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='22' fill='url(%23grad)'/%3E%3Crect x='15' y='30' width='70' height='40' rx='3' fill='%235a67d8' opacity='0.3'/%3E%3Crect x='20' y='35' width='60' height='30' rx='2' fill='white' opacity='0.95'/%3E%3Ctext x='50' y='55' font-family='Arial' font-size='20' font-weight='bold' text-anchor='middle' fill='%23667eea'%3E%24100%3C/text%3E%3Ccircle cx='28' cy='50' r='6' fill='none' stroke='%23667eea' stroke-width='1.5' opacity='0.6'/%3E%3Ccircle cx='72' cy='50' r='6' fill='none' stroke='%23667eea' stroke-width='1.5' opacity='0.6'/%3E%3C/svg%3E">
+    <title>Control de Gastos Personales</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            overscroll-behavior: none;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .category-icon {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+        .category-icon:active {
+            animation: bounce 0.5s ease;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            25% { transform: scale(0.9) rotate(-5deg); }
+            50% { transform: scale(1.1) rotate(5deg); }
+            75% { transform: scale(0.95) rotate(-3deg); }
+        }
+        .expense-card {
+            background: rgba(255, 255, 255, 0.95);
+            transition: all 0.3s ease;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        .float-animation {
+            animation: float 3s ease-in-out infinite;
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .tab-active {
+            background: rgba(255, 255, 255, 0.25) !important;
+            backdrop-filter: blur(10px);
+        }
+        .profile-photo {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        .profile-placeholder {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        .profile-photo-large {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
 
-const ExpenseTrackerDataStructures = () => {
-  const [selectedStructure, setSelectedStructure] = useState('expenses');
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-  const structures = {
-    expenses: {
-      name: 'Gastos (Expenses)',
-      icon: DollarSign,
-      color: 'bg-gradient-to-r from-pink-500 to-rose-500',
-      fields: [
-        { name: 'monto', type: 'number', description: 'Cantidad gastada' },
-        { name: 'descripcion', type: 'string', description: 'Qué compraste/pagaste' },
-        { name: 'categoria_id', type: 'string', description: 'Referencia a categoría' },
-        { name: 'mes', type: 'string (auto)', description: 'Se genera automáticamente del mes actual' },
-        { name: 'metodo_pago', type: 'string', description: 'Efectivo, tarjeta, etc.' },
-        { name: 'notas', type: 'string', description: 'Comentarios adicionales (opcional)' },
-        { name: 'recurrente', type: 'boolean', description: 'Si es gasto mensual fijo' },
-      ]
-    },
-    categories: {
-      name: 'Categorías (Categories)',
-      icon: Tag,
-      color: 'bg-gradient-to-r from-emerald-500 to-teal-500',
-      fields: [
-        { name: 'nombre', type: 'string', description: 'Ej: Alimentación, Deporte' },
-        { name: 'icono', type: 'string', description: 'Emoji o nombre de ícono' },
-        { name: 'color', type: 'string', description: 'Para gráficos visuales' },
-        { name: 'presupuesto_mensual', type: 'number', description: 'Límite sugerido (opcional)' },
-        { name: 'tipo', type: 'string', description: 'Fijo o Variable' },
-      ]
-    },
-    charts: {
-      name: 'Gráficos (Charts)',
-      icon: TrendingUp,
-      color: 'bg-gradient-to-r from-violet-500 to-purple-500',
-      fields: [
-        { name: 'evolucion_por_categoria', type: 'object', description: 'Gráfico de línea mostrando evolución de cada categoría en el tiempo con topes mínimos y máximos' },
-        { name: 'tope_minimo', type: 'number', description: 'Límite inferior de gasto por categoría' },
-        { name: 'tope_maximo', type: 'number', description: 'Límite superior de gasto por categoría' },
-        { name: 'evolucion_total_mensual', type: 'object', description: 'Gráfico mostrando la evolución total de gastos a lo largo del mes' },
-        { name: 'tipo_visualizacion', type: 'string', description: 'Línea, barras, áreas' },
-        { name: 'periodo', type: 'string', description: 'Diario, semanal, mensual' },
-      ]
-    },
-    budgets: {
-      name: 'Presupuestos (Budgets)',
-      icon: TrendingUp,
-      color: 'bg-gradient-to-r from-amber-500 to-orange-500',
-      fields: [
-        { name: 'mes', type: 'string', description: 'Ej: 2026-01' },
-        { name: 'total_presupuesto', type: 'number', description: 'Límite total del mes' },
-        { name: 'total_gastado', type: 'number', description: 'Suma de gastos del mes' },
-        { name: 'meta_ahorro', type: 'number', description: 'Cuánto quieres ahorrar' },
-      ]
-    },
-    user: {
-      name: 'Usuario (User)',
-      icon: User,
-      color: 'bg-gradient-to-r from-cyan-500 to-blue-500',
-      fields: [
-        { name: 'nombre', type: 'string', description: 'Tu nombre' },
-        { name: 'foto_perfil', type: 'image', description: 'Tu foto personal (opcional)' },
-        { name: 'moneda', type: 'string', description: 'COP, USD, etc.' },
-        { name: 'ingreso_mensual', type: 'number', description: 'Para calcular % de gastos' },
-        { name: 'fecha_registro', type: 'datetime', description: 'Cuándo empezaste' },
-      ]
-    },
-    motivational: {
-      name: 'Frases Motivacionales (Motivational)',
-      icon: TrendingUp,
-      color: 'bg-gradient-to-r from-yellow-500 to-amber-500',
-      fields: [
-        { name: 'frase', type: 'string', description: 'Mensaje motivacional del día' },
-        { name: 'tipo', type: 'string', description: 'Registro, Ahorro, Meta, Progreso' },
-        { name: 'icono', type: 'string', description: 'Emoji relacionado' },
-        { name: 'frecuencia', type: 'string', description: 'Diaria, al registrar gasto, al lograr meta' },
-      ]
-    }
-  };
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
 
-  const relationships = [
-    { from: 'expenses', to: 'categories', label: 'pertenece a' },
-    { from: 'expenses', to: 'budgets', label: 'cuenta para' },
-    { from: 'budgets', to: 'user', label: 'pertenece a' },
-    { from: 'expenses', to: 'charts', label: 'se visualiza en' },
-    { from: 'categories', to: 'charts', label: 'tiene topes en' },
-    { from: 'motivational', to: 'user', label: 'motiva a' },
-    { from: 'expenses', to: 'motivational', label: 'dispara frase en' },
-  ];
+        function ExpenseApp() {
+            const [expenses, setExpenses] = useState([]);
+            const [activeTab, setActiveTab] = useState('home');
+            const [userName, setUserName] = useState('');
+            const [userPhone, setUserPhone] = useState('');
+            const [userID, setUserID] = useState('');
+            const [userAddress, setUserAddress] = useState('');
+            const [userPhoto, setUserPhoto] = useState('');
+            const [showProfileModal, setShowProfileModal] = useState(false);
+            const [editingExpense, setEditingExpense] = useState(null);
+            const [historyFilter, setHistoryFilter] = useState('month');
+            const fileInputRef = useRef(null);
+            
+            const [categories] = useState([
+                { id: 1, name: 'Alimentación', icon: '🍔', color: '#FF6B6B', budget: 500000 },
+                { id: 2, name: 'Deporte', icon: '⚽', color: '#4ECDC4', budget: 200000 },
+                { id: 3, name: 'Servicios', icon: '💡', color: '#FFD93D', budget: 300000 },
+                { id: 4, name: 'Arriendo', icon: '🏠', color: '#95E1D3', budget: 1500000 },
+                { id: 5, name: 'Ropa', icon: '👕', color: '#F38181', budget: 300000 },
+                { id: 6, name: 'Viajes', icon: '✈️', color: '#AA96DA', budget: 400000 },
+                { id: 7, name: 'Diversión', icon: '🎉', color: '#FCBAD3', budget: 250000 },
+                { id: 8, name: 'Ocio', icon: '📺', color: '#A8D8EA', budget: 200000 },
+                { id: 9, name: 'Transporte', icon: '🚗', color: '#FFAAA5', budget: 300000 },
+                { id: 10, name: 'Salud', icon: '💊', color: '#90CCF4', budget: 200000 },
+                { id: 11, name: 'Hormigas', icon: '🐜', color: '#B4A7D6', budget: 150000 },
+                { id: 12, name: 'Aseo', icon: '🧹', color: '#FFD6A5', budget: 100000 },
+                { id: 13, name: 'Domicilios', icon: '🛵', color: '#7BF1A8', budget: 200000 }
+            ]);
+            const [showForm, setShowForm] = useState(false);
+            const [motivationalQuote, setMotivationalQuote] = useState('');
+            const [formData, setFormData] = useState({
+                amount: '',
+                description: '',
+                category: '',
+                paymentMethod: 'tarjeta'
+            });
+            const [budgets, setBudgets] = useState({});
+            const donutChartRef = useRef(null);
+            const barChartRef = useRef(null);
 
-  const defaultCategories = [
-    { name: '🍔 Alimentación', budget: 'Variable' },
-    { name: '⚽ Deporte', budget: 'Variable' },
-    { name: '💡 Servicios Públicos', budget: 'Fijo' },
-    { name: '🏠 Arriendo', budget: 'Fijo' },
-    { name: '👕 Ropa', budget: 'Variable' },
-    { name: '✈️ Viajes', budget: 'Variable' },
-    { name: '🎉 Diversión', budget: 'Variable' },
-    { name: '📺 Ocio', budget: 'Variable' },
-    { name: '🚕 Transporte', budget: 'Variable' },
-    { name: '💊 Salud', budget: 'Variable' },
-    { name: '🐜 Gastos Hormigas', budget: 'Variable', description: 'Domicilio, café, agua' },
-    { name: '🧹 Servicios de Aseo', budget: 'Fijo' },
-  ];
+            const quotes = [
+                { text: "Cada peso cuenta 💪", emoji: "🎯" },
+                { text: "Control = Libertad 🔓", emoji: "💰" },
+                { text: "¡Excelente trabajo! 🌟", emoji: "🚀" },
+                { text: "Tus metas están cerca ✨", emoji: "⭐" },
+                { text: "Sigue así, vas genial", emoji: "👣" },
+                { text: "Tu futuro te agradece", emoji: "🙏" },
+                { text: "Domina tus finanzas 💎", emoji: "💪" },
+                { text: "Cada día más cerca 🎯", emoji: "🔓" }
+            ];
 
-  const StructureIcon = structures[selectedStructure].icon;
+            useEffect(() => {
+                const saved = localStorage.getItem('expenses');
+                if (saved) {
+                    setExpenses(JSON.parse(saved));
+                }
+                const savedBudgets = localStorage.getItem('budgets');
+                if (savedBudgets) {
+                    setBudgets(JSON.parse(savedBudgets));
+                } else {
+                    const defaultBudgets = {};
+                    categories.forEach(cat => {
+                        defaultBudgets[cat.id] = cat.budget;
+                    });
+                    setBudgets(defaultBudgets);
+                    localStorage.setItem('budgets', JSON.stringify(defaultBudgets));
+                }
+                
+                const savedName = localStorage.getItem('userName');
+                if (savedName) setUserName(savedName);
+                else setUserName('Daniel');
+                
+                const savedPhone = localStorage.getItem('userPhone');
+                if (savedPhone) setUserPhone(savedPhone);
+                
+                const savedID = localStorage.getItem('userID');
+                if (savedID) setUserID(savedID);
+                
+                const savedAddress = localStorage.getItem('userAddress');
+                if (savedAddress) setUserAddress(savedAddress);
+                
+                const savedPhoto = localStorage.getItem('userPhoto');
+                if (savedPhoto) setUserPhoto(savedPhoto);
+                
+                const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+                setMotivationalQuote(randomQuote);
+            }, []);
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 p-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-block">
-            <h1 className="text-5xl font-bold bg-gradient-to-r from-fuchsia-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent mb-2">
-              Control de Gastos Personales
-            </h1>
-            <div className="h-1.5 bg-gradient-to-r from-fuchsia-600 via-purple-600 to-indigo-600 rounded-full shadow-lg"></div>
-          </div>
-        </div>
+            useEffect(() => {
+                if (activeTab === 'home' && expenses.length > 0) {
+                    setTimeout(() => renderDonutChart(), 100);
+                }
+                if (activeTab === 'stats' && expenses.length > 0) {
+                    setTimeout(() => renderBarChart(), 100);
+                }
+            }, [activeTab, expenses]);
 
-        {/* Structure Selector */}
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
-          {Object.entries(structures).map(([key, struct]) => {
-            const Icon = struct.icon;
+            const handlePhotoUpload = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        setUserPhoto(reader.result);
+                        localStorage.setItem('userPhoto', reader.result);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+
+            const saveProfile = () => {
+                localStorage.setItem('userName', userName);
+                localStorage.setItem('userPhone', userPhone);
+                localStorage.setItem('userID', userID);
+                localStorage.setItem('userAddress', userAddress);
+                setShowProfileModal(false);
+                alert('✅ Perfil actualizado');
+            };
+
+            const saveExpense = () => {
+                if (!formData.amount || !formData.category) {
+                    alert('Por favor completa monto y categoría');
+                    return;
+                }
+
+                if (editingExpense) {
+                    const updated = expenses.map(exp => 
+                        exp.id === editingExpense.id 
+                        ? {
+                            ...exp,
+                            amount: parseFloat(formData.amount),
+                            description: formData.description || 'Sin descripción',
+                            category: categories.find(c => c.id === parseInt(formData.category)),
+                            paymentMethod: formData.paymentMethod
+                        }
+                        : exp
+                    );
+                    setExpenses(updated);
+                    localStorage.setItem('expenses', JSON.stringify(updated));
+                    setEditingExpense(null);
+                    alert('✅ Gasto actualizado');
+                } else {
+                    const newExpense = {
+                        id: Date.now(),
+                        amount: parseFloat(formData.amount),
+                        description: formData.description || 'Sin descripción',
+                        category: categories.find(c => c.id === parseInt(formData.category)),
+                        paymentMethod: formData.paymentMethod,
+                        date: new Date().toISOString(),
+                        month: new Date().toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit' })
+                    };
+
+                    const updated = [...expenses, newExpense];
+                    setExpenses(updated);
+                    localStorage.setItem('expenses', JSON.stringify(updated));
+                    alert('✅ Gasto registrado');
+                }
+
+                setFormData({ amount: '', description: '', category: '', paymentMethod: 'tarjeta' });
+                setShowForm(false);
+
+                const newQuote = quotes[Math.floor(Math.random() * quotes.length)];
+                setMotivationalQuote(newQuote);
+            };
+
+            const editExpense = (expense) => {
+                setEditingExpense(expense);
+                setFormData({
+                    amount: expense.amount.toString(),
+                    description: expense.description === 'Sin descripción' ? '' : expense.description,
+                    category: expense.category.id.toString(),
+                    paymentMethod: expense.paymentMethod
+                });
+                setShowForm(true);
+            };
+
+            const getTotalMonth = () => {
+                const currentMonth = new Date().toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit' });
+                return expenses
+                    .filter(e => e.month === currentMonth)
+                    .reduce((sum, e) => sum + e.amount, 0);
+            };
+
+            const deleteExpense = (id) => {
+                if (confirm('¿Eliminar este gasto?')) {
+                    const updated = expenses.filter(e => e.id !== id);
+                    setExpenses(updated);
+                    localStorage.setItem('expenses', JSON.stringify(updated));
+                }
+            };
+
+            const getCategoryTotal = (categoryId) => {
+                const currentMonth = new Date().toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit' });
+                return expenses
+                    .filter(e => e.month === currentMonth && e.category.id === categoryId)
+                    .reduce((sum, e) => sum + e.amount, 0);
+            };
+
+            const getFilteredExpenses = () => {
+                const now = new Date();
+                return expenses.filter(exp => {
+                    const expDate = new Date(exp.date);
+                    switch(historyFilter) {
+                        case 'day':
+                            return expDate.toDateString() === now.toDateString();
+                        case 'week':
+                            const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                            return expDate >= weekAgo;
+                        case 'month':
+                            return expDate.getMonth() === now.getMonth() && expDate.getFullYear() === now.getFullYear();
+                        case 'year':
+                            return expDate.getFullYear() === now.getFullYear();
+                        default:
+                            return true;
+                    }
+                });
+            };
+
+            const getFilteredTotal = () => {
+                return getFilteredExpenses().reduce((sum, e) => sum + e.amount, 0);
+            };
+
+            const renderDonutChart = () => {
+                const canvas = document.getElementById('donutChart');
+                if (!canvas) return;
+
+                const ctx = canvas.getContext('2d');
+                if (donutChartRef.current) {
+                    donutChartRef.current.destroy();
+                }
+
+                const categoryData = categories
+                    .map(cat => ({
+                        name: cat.name,
+                        icon: cat.icon,
+                        total: getCategoryTotal(cat.id),
+                        color: cat.color
+                    }))
+                    .filter(d => d.total > 0);
+
+                if (categoryData.length === 0) return;
+
+                donutChartRef.current = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: categoryData.map(d => d.icon + ' ' + d.name),
+                        datasets: [{
+                            data: categoryData.map(d => d.total),
+                            backgroundColor: categoryData.map(d => d.color),
+                            borderWidth: 0,
+                            borderRadius: 8,
+                            spacing: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        cutout: '70%',
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                padding: 12,
+                                callbacks: {
+                                    label: function(context) {
+                                        return '$' + context.parsed.toLocaleString('es-CO');
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            };
+
+            const renderBarChart = () => {
+                const canvas = document.getElementById('barChart');
+                if (!canvas) return;
+
+                const ctx = canvas.getContext('2d');
+                if (barChartRef.current) {
+                    barChartRef.current.destroy();
+                }
+
+                const categoryData = categories
+                    .map(cat => ({
+                        name: cat.icon + ' ' + cat.name,
+                        total: getCategoryTotal(cat.id),
+                        budget: budgets[cat.id] || 0,
+                        color: cat.color
+                    }))
+                    .filter(d => d.total > 0);
+
+                if (categoryData.length === 0) return;
+
+                barChartRef.current = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: categoryData.map(d => d.name),
+                        datasets: [{
+                            label: 'Gastado',
+                            data: categoryData.map(d => d.total),
+                            backgroundColor: categoryData.map(d => d.color),
+                            borderRadius: 8
+                        }, {
+                            label: 'Presupuesto',
+                            data: categoryData.map(d => d.budget),
+                            backgroundColor: 'rgba(148, 163, 184, 0.3)',
+                            borderColor: 'rgba(148, 163, 184, 0.8)',
+                            borderWidth: 2,
+                            borderRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return '$' + (value/1000).toFixed(0) + 'K';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            };
+
             return (
-              <button
-                key={key}
-                onClick={() => setSelectedStructure(key)}
-                className={`p-4 rounded-xl transition-all transform hover:scale-105 ${
-                  selectedStructure === key
-                    ? `${struct.color} text-white shadow-lg`
-                    : 'bg-white text-slate-700 hover:shadow-md'
-                }`}
-              >
-                <Icon className="w-6 h-6 mx-auto mb-2" />
-                <div className="text-sm font-semibold">{struct.name}</div>
-              </button>
+                <div className="min-h-screen pb-24">
+                    {/* Header */}
+                    <div className="p-6 pb-8">
+                        <div className="flex justify-between items-start mb-6">
+                            <div className="flex-1">
+                                <div className="flex items-center gap-3 mb-3">
+                                    <h1 className="text-white text-3xl font-bold">Hola, {userName}! 👋</h1>
+                                </div>
+                                <div className="glass-card rounded-2xl p-3 inline-block">
+                                    <p className="text-white text-sm font-medium">💬 {motivationalQuote.text}</p>
+                                </div>
+                            </div>
+                            <button 
+                                onClick={() => setShowProfileModal(true)}
+                                className="relative"
+                            >
+                                {userPhoto ? (
+                                    <img src={userPhoto} alt="Profile" className="profile-photo" />
+                                ) : (
+                                    <div className="profile-placeholder">
+                                        👤
+                                    </div>
+                                )}
+                                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white"></div>
+                            </button>
+                        </div>
+
+                        {activeTab === 'home' && (
+                            <>
+                                {/* Total Card */}
+                                <div className="glass-card rounded-3xl p-6 mb-6 relative overflow-hidden">
+                                    <div className="relative z-10">
+                                        <p className="text-white text-sm opacity-80 mb-2">Balance del mes</p>
+                                        <h2 className="text-white text-4xl font-bold mb-1">
+                                            ${getTotalMonth().toLocaleString('es-CO')}
+                                        </h2>
+                                        <p className="text-white text-xs opacity-60">
+                                            {expenses.filter(e => e.month === new Date().toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit' })).length} transacciones • {new Date().toLocaleDateString('es-CO', { month: 'long' })}
+                                        </p>
+                                    </div>
+                                    <div className="absolute -right-8 -bottom-8 text-9xl opacity-10 float-animation">💰</div>
+                                </div>
+
+                                {/* Donut Chart */}
+                                {expenses.length > 0 && (
+                                    <div className="glass-card rounded-3xl p-6 mb-6">
+                                        <h3 className="text-white font-bold mb-4">Distribución por Categoría</h3>
+                                        <div className="relative" style={{ height: '250px' }}>
+                                            <canvas id="donutChart"></canvas>
+                                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                                <div className="text-center">
+                                                    <p className="text-white text-xs opacity-60">Total</p>
+                                                    <p className="text-white text-xl font-bold">${(getTotalMonth()/1000).toFixed(0)}K</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Categories Grid */}
+                                <div className="mb-6">
+                                    <h3 className="text-white font-bold mb-4">Registrar Rápido</h3>
+                                    <div className="grid grid-cols-4 gap-3">
+                                        {categories.map(cat => {
+                                            const total = getCategoryTotal(cat.id);
+                                            return (
+                                                <div key={cat.id} className="text-center">
+                                                    <button 
+                                                        onClick={() => {
+                                                            setFormData({...formData, category: cat.id.toString()});
+                                                            setShowForm(true);
+                                                            setEditingExpense(null);
+                                                        }}
+                                                        className="category-icon w-full aspect-square rounded-2xl flex flex-col items-center justify-center mb-2"
+                                                        style={{ background: `${cat.color}30`, border: `2px solid ${cat.color}50` }}
+                                                    >
+                                                        <span className="text-3xl mb-1">{cat.icon}</span>
+                                                        {total > 0 && (
+                                                            <span className="text-white text-xs font-bold bg-black bg-opacity-40 px-2 py-0.5 rounded-full">
+                                                                ${(total/1000).toFixed(0)}K
+                                                            </span>
+                                                        )}
+                                                    </button>
+                                                    <p className="text-white text-xs opacity-90 truncate font-medium">{cat.name}</p>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+
+                                {/* Form */}
+                                {showForm && (
+                                    <div className="expense-card rounded-3xl p-6 mb-6 shadow-2xl">
+                                        <h3 className="gradient-text font-bold text-xl mb-4">
+                                            {editingExpense ? 'Editar Gasto' : 'Registrar Gasto'}
+                                        </h3>
+                                        
+                                        <div className="space-y-4">
+                                            <div>
+                                                <label className="block text-gray-700 text-sm font-bold mb-2">💵 Monto *</label>
+                                                <input
+                                                    type="number"
+                                                    value={formData.amount}
+                                                    onChange={(e) => setFormData({...formData, amount: e.target.value})}
+                                                    className="w-full p-4 border-2 border-gray-200 rounded-2xl focus:border-purple-400 focus:outline-none text-2xl font-bold"
+                                                    placeholder="0"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-gray-700 text-sm font-bold mb-2">📝 Descripción (opcional)</label>
+                                                <input
+                                                    type="text"
+                                                    value={formData.description}
+                                                    onChange={(e) => setFormData({...formData, description: e.target.value})}
+                                                    className="w-full p-4 border-2 border-gray-200 rounded-2xl focus:border-purple-400 focus:outline-none"
+                                                    placeholder="Ej: Almuerzo, Uber, etc."
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-gray-700 text-sm font-bold mb-2">🏷️ Categoría *</label>
+                                                <select
+                                                    value={formData.category}
+                                                    onChange={(e) => setFormData({...formData, category: e.target.value})}
+                                                    className="w-full p-4 border-2 border-gray-200 rounded-2xl focus:border-purple-400 focus:outline-none"
+                                                >
+                                                    <option value="">Selecciona...</option>
+                                                    {categories.map(cat => (
+                                                        <option key={cat.id} value={cat.id}>{cat.icon} {cat.name}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-gray-700 text-sm font-bold mb-2">💳 Método de Pago</label>
+                                                <div className="grid grid-cols-3 gap-3">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setFormData({...formData, paymentMethod: 'tarjeta'})}
+                                                        className={`p-3 rounded-2xl font-bold transition-all text-sm ${
+                                                            formData.paymentMethod === 'tarjeta' 
+                                                            ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white' 
+                                                            : 'bg-gray-100 text-gray-600'
+                                                        }`}
+                                                    >
+                                                        💳 Tarjeta
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setFormData({...formData, paymentMethod: 'efectivo'})}
+                                                        className={`p-3 rounded-2xl font-bold transition-all text-sm ${
+                                                            formData.paymentMethod === 'efectivo' 
+                                                            ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white' 
+                                                            : 'bg-gray-100 text-gray-600'
+                                                        }`}
+                                                    >
+                                                        💵 Efectivo
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setFormData({...formData, paymentMethod: 'transferencia'})}
+                                                        className={`p-3 rounded-2xl font-bold transition-all text-sm ${
+                                                            formData.paymentMethod === 'transferencia' 
+                                                            ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white' 
+                                                            : 'bg-gray-100 text-gray-600'
+                                                        }`}
+                                                    >
+                                                        🏦 Transfer
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex gap-3">
+                                                <button
+                                                    onClick={saveExpense}
+                                                    className="flex-1 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-2xl p-4 font-bold text-lg active:scale-95 transition-transform shadow-lg"
+                                                >
+                                                    {editingExpense ? 'Actualizar' : 'Guardar'}
+                                                </button>
+                                                <button
+                                                    onClick={() => {
+                                                        setShowForm(false);
+                                                        setEditingExpense(null);
+                                                        setFormData({ amount: '', description: '', category: '', paymentMethod: 'tarjeta' });
+                                                    }}
+                                                    className="flex-1 bg-gray-200 text-gray-700 rounded-2xl p-4 font-bold active:scale-95 transition-transform"
+                                                >
+                                                    Cancelar
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Recent Expenses */}
+                                <div>
+                                    <h3 className="text-white font-bold mb-4">Gastos Recientes</h3>
+                                    {expenses.length === 0 ? (
+                                        <div className="glass-card rounded-3xl p-8 text-center">
+                                            <span className="text-6xl mb-3 block opacity-50">📊</span>
+                                            <p className="text-white opacity-80">No hay gastos aún</p>
+                                            <p className="text-white text-sm opacity-60 mt-2">¡Comienza a registrar!</p>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            {[...expenses].reverse().slice(0, 5).map(expense => (
+                                                <div key={expense.id} className="expense-card rounded-2xl p-4 shadow-lg">
+                                                    <div className="flex items-center gap-4">
+                                                        <div 
+                                                            className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
+                                                            style={{ background: `${expense.category.color}20` }}
+                                                        >
+                                                            {expense.category.icon}
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="font-bold text-gray-800 truncate">{expense.description}</p>
+                                                            <p className="text-xs text-gray-500">
+                                                                {expense.category.name} • {new Date(expense.date).toLocaleDateString('es-CO')}
+                                                            </p>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <p className="font-bold text-lg gradient-text">
+                                                                ${expense.amount.toLocaleString('es-CO')}
+                                                            </p>
+                                                            <div className="flex gap-2 mt-1">
+                                                                <button
+                                                                    onClick={() => editExpense(expense)}
+                                                                    className="text-blue-500 text-xs active:scale-90 transition-transform"
+                                                                >
+                                                                    Editar
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => deleteExpense(expense.id)}
+                                                                    className="text-red-400 text-xs active:scale-90 transition-transform"
+                                                                >
+                                                                    Eliminar
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </>
+                        )}
+
+                        {activeTab === 'history' && (
+                            <>
+                                <h2 className="text-white text-2xl font-bold mb-4">Historial de Gastos</h2>
+                                
+                                {/* Filter Buttons */}
+                                <div className="glass-card rounded-2xl p-3 mb-6">
+                                    <div className="grid grid-cols-4 gap-2">
+                                        {['day', 'week', 'month', 'year'].map(filter => (
+                                            <button
+                                                key={filter}
+                                                onClick={() => setHistoryFilter(filter)}
+                                                className={`p-2 rounded-xl font-bold text-sm transition-all ${
+                                                    historyFilter === filter
+                                                    ? 'bg-white text-purple-600'
+                                                    : 'text-white'
+                                                }`}
+                                            >
+                                                {filter === 'day' ? 'Día' : filter === 'week' ? 'Semana' : filter === 'month' ? 'Mes' : 'Año'}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Total Filtered */}
+                                <div className="glass-card rounded-2xl p-6 mb-6">
+                                    <p className="text-white text-sm opacity-80 mb-1">Total del período</p>
+                                    <h3 className="text-white text-3xl font-bold">
+                                        ${getFilteredTotal().toLocaleString('es-CO')}
+                                    </h3>
+                                    <p className="text-white text-xs opacity-60 mt-1">
+                                        {getFilteredExpenses().length} transacciones
+                                    </p>
+                                </div>
+
+                                {/* Filtered Expenses List */}
+                                <div className="space-y-3">
+                                    {getFilteredExpenses().length === 0 ? (
+                                        <div className="glass-card rounded-3xl p-8 text-center">
+                                            <span className="text-6xl mb-3 block opacity-50">📭</span>
+                                            <p className="text-white opacity-80">No hay gastos en este período</p>
+                                        </div>
+                                    ) : (
+                                        [...getFilteredExpenses()].reverse().map(expense => (
+                                            <div key={expense.id} className="expense-card rounded-2xl p-4 shadow-lg">
+                                                <div className="flex items-center gap-4">
+                                                    <div 
+                                                        className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
+                                                        style={{ background: `${expense.category.color}20` }}
+                                                    >
+                                                        {expense.category.icon}
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="font-bold text-gray-800 truncate">{expense.description}</p>
+                                                        <p className="text-xs text-gray-500">
+                                                            {expense.category.name} • {expense.paymentMethod} • {new Date(expense.date).toLocaleDateString('es-CO')}
+                                                        </p>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <p className="font-bold text-lg gradient-text">
+                                                            ${expense.amount.toLocaleString('es-CO')}
+                                                        </p>
+                                                        <div className="flex gap-2 mt-1">
+                                                            <button
+                                                                onClick={() => {
+                                                                    editExpense(expense);
+                                                                    setActiveTab('home');
+                                                                }}
+                                                                className="text-blue-500 text-xs active:scale-90 transition-transform"
+                                                            >
+                                                                Editar
+                                                            </button>
+                                                            <button
+                                                                onClick={() => deleteExpense(expense.id)}
+                                                                className="text-red-400 text-xs active:scale-90 transition-transform"
+                                                            >
+                                                                Eliminar
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </>
+                        )}
+
+                        {activeTab === 'stats' && (
+                            <>
+                                <h2 className="text-white text-2xl font-bold mb-4">Estadísticas</h2>
+                                
+                                {expenses.length === 0 ? (
+                                    <div className="glass-card rounded-3xl p-8 text-center">
+                                        <span className="text-6xl mb-3 block opacity-50">📈</span>
+                                        <p className="text-white opacity-80">No hay datos suficientes</p>
+                                        <p className="text-white text-sm opacity-60 mt-2">Registra algunos gastos primero</p>
+                                    </div>
+                                ) : (
+                                    <>
+                                        {/* Stats Cards */}
+                                        <div className="grid grid-cols-2 gap-4 mb-6">
+                                            <div className="glass-card rounded-2xl p-4">
+                                                <p className="text-white text-xs opacity-80 mb-1">Total Mes</p>
+                                                <p className="text-white text-2xl font-bold">${(getTotalMonth()/1000).toFixed(0)}K</p>
+                                            </div>
+                                            <div className="glass-card rounded-2xl p-4">
+                                                <p className="text-white text-xs opacity-80 mb-1">Promedio Diario</p>
+                                                <p className="text-white text-2xl font-bold">${(getTotalMonth()/new Date().getDate()/1000).toFixed(1)}K</p>
+                                            </div>
+                                            <div className="glass-card rounded-2xl p-4">
+                                                <p className="text-white text-xs opacity-80 mb-1">Gastos Totales</p>
+                                                <p className="text-white text-2xl font-bold">{expenses.filter(e => e.month === new Date().toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit' })).length}</p>
+                                            </div>
+                                            <div className="glass-card rounded-2xl p-4">
+                                                <p className="text-white text-xs opacity-80 mb-1">Categorías Usadas</p>
+                                                <p className="text-white text-2xl font-bold">{new Set(expenses.filter(e => e.month === new Date().toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit' })).map(e => e.category.id)).size}</p>
+                                            </div>
+                                        </div>
+
+                                        {/* Bar Chart */}
+                                        <div className="expense-card rounded-3xl p-6 mb-6">
+                                            <h3 className="gradient-text font-bold mb-4">Gastos vs Presupuesto</h3>
+                                            <div style={{ height: '300px' }}>
+                                                <canvas id="barChart"></canvas>
+                                            </div>
+                                        </div>
+
+                                        {/* Category Breakdown */}
+                                        <div className="expense-card rounded-3xl p-6">
+                                            <h3 className="gradient-text font-bold mb-4">Detalle por Categoría</h3>
+                                            <div className="space-y-3">
+                                                {categories.map(cat => {
+                                                    const total = getCategoryTotal(cat.id);
+                                                    const budget = budgets[cat.id] || 0;
+                                                    const percentage = budget > 0 ? (total / budget) * 100 : 0;
+                                                    
+                                                    if (total === 0) return null;
+                                                    
+                                                    return (
+                                                        <div key={cat.id} className="border-b border-gray-100 pb-3">
+                                                            <div className="flex justify-between items-center mb-2">
+                                                                <span className="text-sm font-bold flex items-center gap-2">
+                                                                    <span>{cat.icon}</span>
+                                                                    <span>{cat.name}</span>
+                                                                </span>
+                                                                <span className="text-sm font-bold">${total.toLocaleString('es-CO')}</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="flex-1 bg-gray-200 rounded-full h-2">
+                                                                    <div 
+                                                                        className="h-2 rounded-full transition-all"
+                                                                        style={{ 
+                                                                            width: `${Math.min(percentage, 100)}%`,
+                                                                            background: percentage > 100 ? '#ef4444' : cat.color
+                                                                        }}
+                                                                    ></div>
+                                                                </div>
+                                                                <span className={`text-xs font-bold ${percentage > 100 ? 'text-red-500' : 'text-gray-500'}`}>
+                                                                    {percentage.toFixed(0)}%
+                                                                </span>
+                                                            </div>
+                                                            <p className="text-xs text-gray-500 mt-1">
+                                                                Presupuesto: ${budget.toLocaleString('es-CO')}
+                                                            </p>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
+                            </>
+                        )}
+                    </div>
+
+                    {/* Profile Modal */}
+                    {showProfileModal && (
+                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                            <div className="expense-card rounded-3xl p-6 max-w-md w-full max-h-[80vh] overflow-y-auto">
+                                <h3 className="gradient-text font-bold text-xl mb-4">Mi Perfil</h3>
+                                
+                                <div className="flex flex-col items-center mb-6">
+                                    {userPhoto ? (
+                                        <img src={userPhoto} alt="Profile" className="profile-photo-large mb-3" />
+                                    ) : (
+                                        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-400 to-indigo-400 flex items-center justify-center text-4xl mb-3">
+                                            👤
+                                        </div>
+                                    )}
+                                    <input 
+                                        type="file" 
+                                        ref={fileInputRef}
+                                        onChange={handlePhotoUpload}
+                                        accept="image/*"
+                                        className="hidden"
+                                    />
+                                    <button
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white px-4 py-2 rounded-xl font-bold text-sm active:scale-95 transition-transform"
+                                    >
+                                        📸 Cambiar Foto
+                                    </button>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-gray-700 text-sm font-bold mb-2">👤 Nombre</label>
+                                        <input
+                                            type="text"
+                                            value={userName}
+                                            onChange={(e) => setUserName(e.target.value)}
+                                            className="w-full p-3 border-2 border-gray-200 rounded-2xl focus:border-purple-400 focus:outline-none"
+                                            placeholder="Ej: Daniel"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-gray-700 text-sm font-bold mb-2">📱 Teléfono</label>
+                                        <input
+                                            type="tel"
+                                            value={userPhone}
+                                            onChange={(e) => setUserPhone(e.target.value)}
+                                            className="w-full p-3 border-2 border-gray-200 rounded-2xl focus:border-purple-400 focus:outline-none"
+                                            placeholder="Ej: 300 123 4567"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-gray-700 text-sm font-bold mb-2">🆔 Cédula</label>
+                                        <input
+                                            type="text"
+                                            value={userID}
+                                            onChange={(e) => setUserID(e.target.value)}
+                                            className="w-full p-3 border-2 border-gray-200 rounded-2xl focus:border-purple-400 focus:outline-none"
+                                            placeholder="Ej: 1234567890"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-gray-700 text-sm font-bold mb-2">🏠 Dirección</label>
+                                        <input
+                                            type="text"
+                                            value={userAddress}
+                                            onChange={(e) => setUserAddress(e.target.value)}
+                                            className="w-full p-3 border-2 border-gray-200 rounded-2xl focus:border-purple-400 focus:outline-none"
+                                            placeholder="Ej: Calle 123 #45-67"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-3 mt-6">
+                                    <button
+                                        onClick={saveProfile}
+                                        className="flex-1 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-2xl p-3 font-bold active:scale-95 transition-transform"
+                                    >
+                                        Guardar
+                                    </button>
+                                    <button
+                                        onClick={() => setShowProfileModal(false)}
+                                        className="flex-1 bg-gray-200 text-gray-700 rounded-2xl p-3 font-bold active:scale-95 transition-transform"
+                                    >
+                                        Cancelar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Bottom Navigation */}
+                    <div className="fixed bottom-0 left-0 right-0 glass-card border-t border-white border-opacity-20">
+                        <div className="flex justify-around items-center p-2 max-w-2xl mx-auto">
+                            <button
+                                onClick={() => setActiveTab('home')}
+                                className={`flex flex-col items-center p-3 rounded-2xl flex-1 transition-all ${
+                                    activeTab === 'home' ? 'tab-active' : ''
+                                }`}
+                            >
+                                <span className="text-2xl mb-1">🏠</span>
+                                <span className="text-xs font-bold text-white">Inicio</span>
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('history')}
+                                className={`flex flex-col items-center p-3 rounded-2xl flex-1 transition-all ${
+                                    activeTab === 'history' ? 'tab-active' : ''
+                                }`}
+                            >
+                                <span className="text-2xl mb-1">📋</span>
+                                <span className="text-xs font-bold text-white">Historial</span>
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('stats')}
+                                className={`flex flex-col items-center p-3 rounded-2xl flex-1 transition-all ${
+                                    activeTab === 'stats' ? 'tab-active' : ''
+                                }`}
+                            >
+                                <span className="text-2xl mb-1">📊</span>
+                                <span className="text-xs font-bold text-white">Stats</span>
+                            </button>
+                            <button
+                                onClick={() => setShowProfileModal(true)}
+                                className={`flex flex-col items-center p-3 rounded-2xl flex-1 transition-all ${
+                                    showProfileModal ? 'tab-active' : ''
+                                }`}
+                            >
+                                <span className="text-2xl mb-1">👤</span>
+                                <span className="text-xs font-bold text-white">Perfil</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
             );
-          })}
-        </div>
+        }
 
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Structure Details */}
-          <div className="lg:col-span-2 bg-white rounded-2xl shadow-2xl border-2 border-purple-100 p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <div className={`${structures[selectedStructure].color} p-3 rounded-xl`}>
-                <StructureIcon className="w-6 h-6 text-white" />
-              </div>
-              <h2 className="text-2xl font-bold text-slate-800">
-                {structures[selectedStructure].name}
-              </h2>
-            </div>
-
-            <div className="space-y-3">
-              {structures[selectedStructure].fields.map((field, idx) => (
-                <div
-                  key={idx}
-                  className="border-2 border-purple-200 rounded-lg p-4 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 transition-all hover:border-purple-300 hover:shadow-md"
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <span className="font-mono font-semibold text-slate-800">
-                      {field.name}
-                    </span>
-                    <span className="text-xs bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 rounded-full font-semibold shadow-md">
-                      {field.type}
-                    </span>
-                  </div>
-                  <p className="text-sm text-slate-600">{field.description}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Relationships & Categories */}
-          <div className="space-y-6">
-            {/* Relationships */}
-            <div className="bg-white rounded-2xl shadow-2xl border-2 border-indigo-100 p-6">
-              <h3 className="text-lg font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-4">🔗 Relaciones</h3>
-              <div className="space-y-3">
-                {relationships.map((rel, idx) => (
-                  <div key={idx} className="text-sm">
-                    <div className="font-semibold text-pink-600">
-                      {structures[rel.from].name.split('(')[0].trim()}
-                    </div>
-                    <div className="text-purple-500 italic ml-2">↓ {rel.label}</div>
-                    <div className="font-semibold text-emerald-600 ml-2">
-                      {structures[rel.to].name.split('(')[0].trim()}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Default Categories */}
-            <div className="bg-white rounded-2xl shadow-2xl border-2 border-pink-100 p-6">
-              <h3 className="text-lg font-bold bg-gradient-to-r from-pink-600 to-rose-600 bg-clip-text text-transparent mb-4">📋 Categorías Sugeridas</h3>
-              <div className="space-y-2">
-                {defaultCategories.map((cat, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center justify-between text-sm p-2 rounded hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 transition-all"
-                  >
-                    <div className="flex-1">
-                      <span>{cat.name}</span>
-                      {cat.description && (
-                        <div className="text-xs text-slate-500 ml-6">{cat.description}</div>
-                      )}
-                    </div>
-                    <span className={`text-xs px-3 py-1 rounded-full whitespace-nowrap font-semibold shadow-md ${
-                      cat.budget === 'Fijo' 
-                        ? 'bg-gradient-to-r from-orange-400 to-red-500 text-white' 
-                        : 'bg-gradient-to-r from-cyan-400 to-blue-500 text-white'
-                    }`}>
-                      {cat.budget}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Motivational Quotes */}
-            <div className="bg-gradient-to-br from-yellow-50 to-amber-50 rounded-2xl shadow-2xl border-2 border-yellow-200 p-6">
-              <h3 className="text-lg font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent mb-4">💪 Frases Motivacionales</h3>
-              <div className="space-y-3 text-sm">
-                <div className="bg-white p-3 rounded-lg border border-yellow-200 shadow-sm">
-                  <div className="font-semibold text-yellow-700 mb-1">🎯 Registro</div>
-                  <p className="text-slate-700 italic">"Cada gasto registrado es un paso hacia tu libertad financiera"</p>
-                </div>
-                <div className="bg-white p-3 rounded-lg border border-green-200 shadow-sm">
-                  <div className="font-semibold text-green-700 mb-1">💰 Ahorro</div>
-                  <p className="text-slate-700 italic">"El ahorro de hoy es la tranquilidad de mañana"</p>
-                </div>
-                <div className="bg-white p-3 rounded-lg border border-blue-200 shadow-sm">
-                  <div className="font-semibold text-blue-700 mb-1">🚀 Progreso</div>
-                  <p className="text-slate-700 italic">"¡Vas genial! Ya llevas control de tus finanzas"</p>
-                </div>
-                <div className="bg-white p-3 rounded-lg border border-purple-200 shadow-sm">
-                  <div className="font-semibold text-purple-700 mb-1">⭐ Meta</div>
-                  <p className="text-slate-700 italic">"Tus metas están más cerca de lo que crees"</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Implementation Notes */}
-        <div className="mt-8 bg-gradient-to-r from-fuchsia-100 via-purple-100 to-indigo-100 rounded-2xl shadow-2xl border-2 border-purple-200 p-6">
-          <h3 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">💡 Notas de Implementación</h3>
-          <div className="grid md:grid-cols-2 gap-4 text-sm text-slate-700">
-            <div>
-              <h4 className="font-semibold mb-2">✅ Funcionalidades Clave:</h4>
-              <ul className="space-y-1 ml-4">
-                <li>• Registro rápido de gastos diarios</li>
-                <li>• Mes asignado automáticamente al crear gasto</li>
-                <li>• Foto de perfil personalizada</li>
-                <li>• Frases motivacionales dinámicas</li>
-                <li>• Categorización automática (12 categorías)</li>
-                <li>• Gastos recurrentes (arriendo, servicios)</li>
-                <li>• Alertas de presupuesto</li>
-                <li>• Gráfico de evolución por categoría con topes</li>
-                <li>• Gráfico de evolución total mensual</li>
-                <li>• Control de gastos hormigas</li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-2">🛠️ Tecnologías Recomendadas:</h4>
-              <ul className="space-y-1 ml-4">
-                <li>• Frontend: React + Tailwind CSS</li>
-                <li>• Backend: Firebase/Supabase</li>
-                <li>• Gráficos: Recharts o Chart.js</li>
-                <li>• Storage: LocalStorage o base de datos cloud</li>
-                <li>• Fecha/Hora: JavaScript Date() para mes automático</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default ExpenseTrackerDataStructures;
+        const root = ReactDOM.createRoot(document.getElementById('app'));
+        root.render(<ExpenseApp />);
+    </script>
+</body>
+</html>
