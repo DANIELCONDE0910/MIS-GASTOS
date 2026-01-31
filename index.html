@@ -6,31 +6,44 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Mis Gastos">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23667eea;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23764ba2;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='22' fill='url(%23grad)'/%3E%3Crect x='15' y='30' width='70' height='40' rx='3' fill='%235a67d8' opacity='0.3'/%3E%3Crect x='20' y='35' width='60' height='30' rx='2' fill='white' opacity='0.95'/%3E%3Ctext x='50' y='55' font-family='Arial' font-size='20' font-weight='bold' text-anchor='middle' fill='%23667eea'%3E%24100%3C/text%3E%3Ccircle cx='28' cy='50' r='6' fill='none' stroke='%23667eea' stroke-width='1.5' opacity='0.6'/%3E%3Ccircle cx='72' cy='50' r='6' fill='none' stroke='%23667eea' stroke-width='1.5' opacity='0.6'/%3E%3C/svg%3E">
-    <title>Control de Gastos Personales</title>
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%2300f5ff;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23667eea;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='22' fill='url(%23grad)'/%3E%3Ccircle cx='50' cy='50' r='30' fill='white' opacity='0.2'/%3E%3Ctext x='50' y='65' font-size='35' text-anchor='middle' fill='white'%3E💰%3C/text%3E%3C/svg%3E">
+    <title>Control de Gastos</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
-        * {
-            -webkit-tap-highlight-color: transparent;
-        }
+        * { -webkit-tap-highlight-color: transparent; }
         body {
             overscroll-behavior: none;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
         }
         .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        .glass-card-strong {
             background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
         }
         .category-icon {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(5px);
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
             transition: all 0.3s ease;
+            cursor: grab;
         }
         .category-icon:active {
+            cursor: grabbing;
             animation: bounce 0.5s ease;
+        }
+        .category-icon.sortable-ghost {
+            opacity: 0.4;
         }
         @keyframes bounce {
             0%, 100% { transform: scale(1); }
@@ -41,23 +54,40 @@
         .expense-card {
             background: rgba(255, 255, 255, 0.95);
             transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.5);
         }
         @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(5deg); }
         }
         .float-animation {
-            animation: float 3s ease-in-out infinite;
+            animation: float 4s ease-in-out infinite;
+        }
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(102, 126, 234, 0.5), 0 0 40px rgba(102, 126, 234, 0.3); }
+            50% { box-shadow: 0 0 30px rgba(240, 147, 251, 0.6), 0 0 60px rgba(240, 147, 251, 0.4); }
+        }
+        .glow-effect {
+            animation: glow 3s ease-in-out infinite;
         }
         .gradient-text {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #00f5ff 0%, #667eea 50%, #f093fb 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
         .tab-active {
-            background: rgba(255, 255, 255, 0.25) !important;
-            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.3) !important;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        .profile-mini {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
         .profile-photo {
             width: 50px;
@@ -65,25 +95,26 @@
             border-radius: 50%;
             object-fit: cover;
             border: 2px solid white;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-        }
-        .profile-placeholder {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
-            border: 2px solid white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
         .profile-photo-large {
             width: 100px;
             height: 100px;
             border-radius: 50%;
             object-fit: cover;
-            border: 4px solid #667eea;
+            border: 4px solid #00f5ff;
+            box-shadow: 0 8px 20px rgba(0, 245, 255, 0.3);
+        }
+        .neon-border {
+            border: 2px solid rgba(0, 245, 255, 0.5);
+            box-shadow: 0 0 15px rgba(0, 245, 255, 0.3);
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+        }
+        .pulse-animation {
+            animation: pulse 2s ease-in-out infinite;
         }
     </style>
 </head>
@@ -109,8 +140,9 @@
             const [editingExpense, setEditingExpense] = useState(null);
             const [historyFilter, setHistoryFilter] = useState('month');
             const fileInputRef = useRef(null);
+            const categoriesGridRef = useRef(null);
             
-            const [categories] = useState([
+            const [categories, setCategories] = useState([
                 { id: 1, name: 'Alimentación', icon: '🍔', color: '#FF6B6B', budget: 500000 },
                 { id: 2, name: 'Deporte', icon: '⚽', color: '#4ECDC4', budget: 200000 },
                 { id: 3, name: 'Servicios', icon: '💡', color: '#FFD93D', budget: 300000 },
@@ -125,6 +157,7 @@
                 { id: 12, name: 'Aseo', icon: '🧹', color: '#FFD6A5', budget: 100000 },
                 { id: 13, name: 'Domicilios', icon: '🛵', color: '#7BF1A8', budget: 200000 }
             ]);
+            
             const [showForm, setShowForm] = useState(false);
             const [motivationalQuote, setMotivationalQuote] = useState('');
             const [formData, setFormData] = useState({
@@ -138,21 +171,23 @@
             const barChartRef = useRef(null);
 
             const quotes = [
-                { text: "Cada peso cuenta 💪", emoji: "🎯" },
-                { text: "Control = Libertad 🔓", emoji: "💰" },
-                { text: "¡Excelente trabajo! 🌟", emoji: "🚀" },
-                { text: "Tus metas están cerca ✨", emoji: "⭐" },
-                { text: "Sigue así, vas genial", emoji: "👣" },
-                { text: "Tu futuro te agradece", emoji: "🙏" },
-                { text: "Domina tus finanzas 💎", emoji: "💪" },
-                { text: "Cada día más cerca 🎯", emoji: "🔓" }
+                { text: "Cada peso cuenta 💪" },
+                { text: "Control = Libertad 🔓" },
+                { text: "¡Excelente trabajo! 🌟" },
+                { text: "Tus metas están cerca ✨" },
+                { text: "Sigue así, vas genial" },
+                { text: "Tu futuro te agradece" },
+                { text: "Domina tus finanzas 💎" },
+                { text: "Cada día más cerca 🎯" }
             ];
 
             useEffect(() => {
                 const saved = localStorage.getItem('expenses');
-                if (saved) {
-                    setExpenses(JSON.parse(saved));
-                }
+                if (saved) setExpenses(JSON.parse(saved));
+                
+                const savedCategories = localStorage.getItem('categoriesOrder');
+                if (savedCategories) setCategories(JSON.parse(savedCategories));
+                
                 const savedBudgets = localStorage.getItem('budgets');
                 if (savedBudgets) {
                     setBudgets(JSON.parse(savedBudgets));
@@ -165,25 +200,31 @@
                     localStorage.setItem('budgets', JSON.stringify(defaultBudgets));
                 }
                 
-                const savedName = localStorage.getItem('userName');
-                if (savedName) setUserName(savedName);
-                else setUserName('Daniel');
+                setUserName(localStorage.getItem('userName') || 'Daniel');
+                setUserPhone(localStorage.getItem('userPhone') || '');
+                setUserID(localStorage.getItem('userID') || '');
+                setUserAddress(localStorage.getItem('userAddress') || '');
+                setUserPhoto(localStorage.getItem('userPhoto') || '');
                 
-                const savedPhone = localStorage.getItem('userPhone');
-                if (savedPhone) setUserPhone(savedPhone);
-                
-                const savedID = localStorage.getItem('userID');
-                if (savedID) setUserID(savedID);
-                
-                const savedAddress = localStorage.getItem('userAddress');
-                if (savedAddress) setUserAddress(savedAddress);
-                
-                const savedPhoto = localStorage.getItem('userPhoto');
-                if (savedPhoto) setUserPhoto(savedPhoto);
-                
-                const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
-                setMotivationalQuote(randomQuote);
+                setMotivationalQuote(quotes[Math.floor(Math.random() * quotes.length)]);
             }, []);
+
+            useEffect(() => {
+                if (categoriesGridRef.current && activeTab === 'home') {
+                    const sortable = new Sortable(categoriesGridRef.current, {
+                        animation: 150,
+                        ghostClass: 'sortable-ghost',
+                        onEnd: (evt) => {
+                            const newCategories = [...categories];
+                            const [moved] = newCategories.splice(evt.oldIndex, 1);
+                            newCategories.splice(evt.newIndex, 0, moved);
+                            setCategories(newCategories);
+                            localStorage.setItem('categoriesOrder', JSON.stringify(newCategories));
+                        }
+                    });
+                    return () => sortable.destroy();
+                }
+            }, [categories, activeTab]);
 
             useEffect(() => {
                 if (activeTab === 'home' && expenses.length > 0) {
@@ -256,9 +297,7 @@
 
                 setFormData({ amount: '', description: '', category: '', paymentMethod: 'tarjeta' });
                 setShowForm(false);
-
-                const newQuote = quotes[Math.floor(Math.random() * quotes.length)];
-                setMotivationalQuote(newQuote);
+                setMotivationalQuote(quotes[Math.floor(Math.random() * quotes.length)]);
             };
 
             const editExpense = (expense) => {
@@ -274,9 +313,7 @@
 
             const getTotalMonth = () => {
                 const currentMonth = new Date().toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit' });
-                return expenses
-                    .filter(e => e.month === currentMonth)
-                    .reduce((sum, e) => sum + e.amount, 0);
+                return expenses.filter(e => e.month === currentMonth).reduce((sum, e) => sum + e.amount, 0);
             };
 
             const deleteExpense = (id) => {
@@ -289,9 +326,7 @@
 
             const getCategoryTotal = (categoryId) => {
                 const currentMonth = new Date().toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit' });
-                return expenses
-                    .filter(e => e.month === currentMonth && e.category.id === categoryId)
-                    .reduce((sum, e) => sum + e.amount, 0);
+                return expenses.filter(e => e.month === currentMonth && e.category.id === categoryId).reduce((sum, e) => sum + e.amount, 0);
             };
 
             const getFilteredExpenses = () => {
@@ -299,46 +334,32 @@
                 return expenses.filter(exp => {
                     const expDate = new Date(exp.date);
                     switch(historyFilter) {
-                        case 'day':
-                            return expDate.toDateString() === now.toDateString();
-                        case 'week':
-                            const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-                            return expDate >= weekAgo;
-                        case 'month':
-                            return expDate.getMonth() === now.getMonth() && expDate.getFullYear() === now.getFullYear();
-                        case 'year':
-                            return expDate.getFullYear() === now.getFullYear();
-                        default:
-                            return true;
+                        case 'day': return expDate.toDateString() === now.toDateString();
+                        case 'week': return expDate >= new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                        case 'month': return expDate.getMonth() === now.getMonth() && expDate.getFullYear() === now.getFullYear();
+                        case 'year': return expDate.getFullYear() === now.getFullYear();
+                        default: return true;
                     }
                 });
             };
 
-            const getFilteredTotal = () => {
-                return getFilteredExpenses().reduce((sum, e) => sum + e.amount, 0);
-            };
+            const getFilteredTotal = () => getFilteredExpenses().reduce((sum, e) => sum + e.amount, 0);
 
             const renderDonutChart = () => {
                 const canvas = document.getElementById('donutChart');
                 if (!canvas) return;
+                if (donutChartRef.current) donutChartRef.current.destroy();
 
-                const ctx = canvas.getContext('2d');
-                if (donutChartRef.current) {
-                    donutChartRef.current.destroy();
-                }
-
-                const categoryData = categories
-                    .map(cat => ({
-                        name: cat.name,
-                        icon: cat.icon,
-                        total: getCategoryTotal(cat.id),
-                        color: cat.color
-                    }))
-                    .filter(d => d.total > 0);
+                const categoryData = categories.map(cat => ({
+                    name: cat.name,
+                    icon: cat.icon,
+                    total: getCategoryTotal(cat.id),
+                    color: cat.color
+                })).filter(d => d.total > 0);
 
                 if (categoryData.length === 0) return;
 
-                donutChartRef.current = new Chart(ctx, {
+                donutChartRef.current = new Chart(canvas, {
                     type: 'doughnut',
                     data: {
                         labels: categoryData.map(d => d.icon + ' ' + d.name),
@@ -346,8 +367,8 @@
                             data: categoryData.map(d => d.total),
                             backgroundColor: categoryData.map(d => d.color),
                             borderWidth: 0,
-                            borderRadius: 8,
-                            spacing: 4
+                            borderRadius: 10,
+                            spacing: 6
                         }]
                     },
                     options: {
@@ -355,16 +376,12 @@
                         maintainAspectRatio: true,
                         cutout: '70%',
                         plugins: {
-                            legend: {
-                                display: false
-                            },
+                            legend: { display: false },
                             tooltip: {
-                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                padding: 12,
+                                backgroundColor: 'rgba(0, 0, 0, 0.85)',
+                                padding: 14,
                                 callbacks: {
-                                    label: function(context) {
-                                        return '$' + context.parsed.toLocaleString('es-CO');
-                                    }
+                                    label: (context) => '$' + context.parsed.toLocaleString('es-CO')
                                 }
                             }
                         }
@@ -375,24 +392,18 @@
             const renderBarChart = () => {
                 const canvas = document.getElementById('barChart');
                 if (!canvas) return;
+                if (barChartRef.current) barChartRef.current.destroy();
 
-                const ctx = canvas.getContext('2d');
-                if (barChartRef.current) {
-                    barChartRef.current.destroy();
-                }
-
-                const categoryData = categories
-                    .map(cat => ({
-                        name: cat.icon + ' ' + cat.name,
-                        total: getCategoryTotal(cat.id),
-                        budget: budgets[cat.id] || 0,
-                        color: cat.color
-                    }))
-                    .filter(d => d.total > 0);
+                const categoryData = categories.map(cat => ({
+                    name: cat.icon + ' ' + cat.name,
+                    total: getCategoryTotal(cat.id),
+                    budget: budgets[cat.id] || 0,
+                    color: cat.color
+                })).filter(d => d.total > 0);
 
                 if (categoryData.length === 0) return;
 
-                barChartRef.current = new Chart(ctx, {
+                barChartRef.current = new Chart(canvas, {
                     type: 'bar',
                     data: {
                         labels: categoryData.map(d => d.name),
@@ -400,32 +411,25 @@
                             label: 'Gastado',
                             data: categoryData.map(d => d.total),
                             backgroundColor: categoryData.map(d => d.color),
-                            borderRadius: 8
+                            borderRadius: 10
                         }, {
                             label: 'Presupuesto',
                             data: categoryData.map(d => d.budget),
                             backgroundColor: 'rgba(148, 163, 184, 0.3)',
                             borderColor: 'rgba(148, 163, 184, 0.8)',
                             borderWidth: 2,
-                            borderRadius: 8
+                            borderRadius: 10
                         }]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                display: true,
-                                position: 'top'
-                            }
-                        },
+                        plugins: { legend: { display: true, position: 'top' } },
                         scales: {
                             y: {
                                 beginAtZero: true,
                                 ticks: {
-                                    callback: function(value) {
-                                        return '$' + (value/1000).toFixed(0) + 'K';
-                                    }
+                                    callback: (value) => '$' + (value/1000).toFixed(0) + 'K'
                                 }
                             }
                         }
@@ -435,68 +439,64 @@
 
             return (
                 <div className="min-h-screen pb-24">
-                    {/* Header */}
                     <div className="p-6 pb-8">
                         <div className="flex justify-between items-start mb-6">
                             <div className="flex-1">
-                                <div className="flex items-center gap-3 mb-3">
-                                    <h1 className="text-white text-3xl font-bold">Hola, {userName}! 👋</h1>
-                                </div>
-                                <div className="glass-card rounded-2xl p-3 inline-block">
+                                <h1 className="text-white text-3xl font-bold mb-3" style={{textShadow: '0 0 20px rgba(0,245,255,0.5)'}}>
+                                    Hola, {userName}! 👋
+                                </h1>
+                                <div className="glass-card rounded-2xl p-3 inline-block neon-border">
                                     <p className="text-white text-sm font-medium">💬 {motivationalQuote.text}</p>
                                 </div>
                             </div>
-                            <button 
-                                onClick={() => setShowProfileModal(true)}
-                                className="relative"
-                            >
+                            <button onClick={() => setShowProfileModal(true)} className="relative">
                                 {userPhoto ? (
-                                    <img src={userPhoto} alt="Profile" className="profile-photo" />
+                                    <img src={userPhoto} alt="Profile" className="profile-photo pulse-animation" />
                                 ) : (
-                                    <div className="profile-placeholder">
+                                    <div className="profile-photo bg-gradient-to-br from-cyan-400 to-purple-500 flex items-center justify-center text-2xl pulse-animation">
                                         👤
                                     </div>
                                 )}
-                                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white"></div>
+                                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-cyan-400 rounded-full border-2 border-white glow-effect"></div>
                             </button>
                         </div>
 
                         {activeTab === 'home' && (
                             <>
-                                {/* Total Card */}
-                                <div className="glass-card rounded-3xl p-6 mb-6 relative overflow-hidden">
+                                <div className="glass-card-strong rounded-3xl p-6 mb-6 relative overflow-hidden glow-effect">
                                     <div className="relative z-10">
-                                        <p className="text-white text-sm opacity-80 mb-2">Balance del mes</p>
-                                        <h2 className="text-white text-4xl font-bold mb-1">
+                                        <p className="text-white text-sm opacity-90 mb-2">Balance del mes</p>
+                                        <h2 className="text-white text-4xl font-bold mb-1" style={{textShadow: '0 0 30px rgba(0,245,255,0.6)'}}>
                                             ${getTotalMonth().toLocaleString('es-CO')}
                                         </h2>
-                                        <p className="text-white text-xs opacity-60">
+                                        <p className="text-cyan-200 text-xs opacity-80">
                                             {expenses.filter(e => e.month === new Date().toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit' })).length} transacciones • {new Date().toLocaleDateString('es-CO', { month: 'long' })}
                                         </p>
                                     </div>
-                                    <div className="absolute -right-8 -bottom-8 text-9xl opacity-10 float-animation">💰</div>
+                                    <div className="absolute -right-12 -bottom-12 text-9xl opacity-10 float-animation">💰</div>
                                 </div>
 
-                                {/* Donut Chart */}
                                 {expenses.length > 0 && (
-                                    <div className="glass-card rounded-3xl p-6 mb-6">
+                                    <div className="glass-card-strong rounded-3xl p-6 mb-6">
                                         <h3 className="text-white font-bold mb-4">Distribución por Categoría</h3>
                                         <div className="relative" style={{ height: '250px' }}>
                                             <canvas id="donutChart"></canvas>
                                             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                                                 <div className="text-center">
-                                                    <p className="text-white text-xs opacity-60">Total</p>
-                                                    <p className="text-white text-xl font-bold">${(getTotalMonth()/1000).toFixed(0)}K</p>
+                                                    <p className="text-white text-xs opacity-70">Total</p>
+                                                    <p className="text-white text-xl font-bold" style={{textShadow: '0 0 20px rgba(0,245,255,0.8)'}}>
+                                                        ${(getTotalMonth()/1000).toFixed(0)}K
+                                                    </p>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 )}
 
-                                {/* Categories Grid */}
                                 <div className="mb-6">
-                                    <h3 className="text-white font-bold mb-4">Registrar Rápido</h3>
-                                    <div className="grid grid-cols-4 gap-3">
+                                    <h3 className="text-white font-bold mb-3">Registrar Rápido</h3>
+                                    <p className="text-cyan-200 text-xs mb-4 opacity-80">✨ Mantén presionado para reorganizar</p>
+                                    <div ref={categoriesGridRef} className="grid grid-cols-4 gap-3">
                                         {categories.map(cat => {
                                             const total = getCategoryTotal(cat.id);
                                             return (
@@ -508,11 +508,14 @@
                                                             setEditingExpense(null);
                                                         }}
                                                         className="category-icon w-full aspect-square rounded-2xl flex flex-col items-center justify-center mb-2"
-                                                        style={{ background: `${cat.color}30`, border: `2px solid ${cat.color}50` }}
+                                                        style={{ 
+                                                            background: `linear-gradient(135deg, ${cat.color}40, ${cat.color}20)`,
+                                                            boxShadow: `0 0 15px ${cat.color}30`
+                                                        }}
                                                     >
                                                         <span className="text-3xl mb-1">{cat.icon}</span>
                                                         {total > 0 && (
-                                                            <span className="text-white text-xs font-bold bg-black bg-opacity-40 px-2 py-0.5 rounded-full">
+                                                            <span className="text-white text-xs font-bold bg-black bg-opacity-50 px-2 py-0.5 rounded-full">
                                                                 ${(total/1000).toFixed(0)}K
                                                             </span>
                                                         )}
@@ -524,7 +527,6 @@
                                     </div>
                                 </div>
 
-                                {/* Form */}
                                 {showForm && (
                                     <div className="expense-card rounded-3xl p-6 mb-6 shadow-2xl">
                                         <h3 className="gradient-text font-bold text-xl mb-4">
@@ -538,7 +540,7 @@
                                                     type="number"
                                                     value={formData.amount}
                                                     onChange={(e) => setFormData({...formData, amount: e.target.value})}
-                                                    className="w-full p-4 border-2 border-gray-200 rounded-2xl focus:border-purple-400 focus:outline-none text-2xl font-bold"
+                                                    className="w-full p-4 border-2 border-gray-200 rounded-2xl focus:border-cyan-400 focus:outline-none text-2xl font-bold"
                                                     placeholder="0"
                                                 />
                                             </div>
@@ -549,7 +551,7 @@
                                                     type="text"
                                                     value={formData.description}
                                                     onChange={(e) => setFormData({...formData, description: e.target.value})}
-                                                    className="w-full p-4 border-2 border-gray-200 rounded-2xl focus:border-purple-400 focus:outline-none"
+                                                    className="w-full p-4 border-2 border-gray-200 rounded-2xl focus:border-cyan-400 focus:outline-none"
                                                     placeholder="Ej: Almuerzo, Uber, etc."
                                                 />
                                             </div>
@@ -559,7 +561,7 @@
                                                 <select
                                                     value={formData.category}
                                                     onChange={(e) => setFormData({...formData, category: e.target.value})}
-                                                    className="w-full p-4 border-2 border-gray-200 rounded-2xl focus:border-purple-400 focus:outline-none"
+                                                    className="w-full p-4 border-2 border-gray-200 rounded-2xl focus:border-cyan-400 focus:outline-none"
                                                 >
                                                     <option value="">Selecciona...</option>
                                                     {categories.map(cat => (
@@ -571,46 +573,27 @@
                                             <div>
                                                 <label className="block text-gray-700 text-sm font-bold mb-2">💳 Método de Pago</label>
                                                 <div className="grid grid-cols-3 gap-3">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setFormData({...formData, paymentMethod: 'tarjeta'})}
-                                                        className={`p-3 rounded-2xl font-bold transition-all text-sm ${
-                                                            formData.paymentMethod === 'tarjeta' 
-                                                            ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white' 
-                                                            : 'bg-gray-100 text-gray-600'
-                                                        }`}
-                                                    >
-                                                        💳 Tarjeta
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setFormData({...formData, paymentMethod: 'efectivo'})}
-                                                        className={`p-3 rounded-2xl font-bold transition-all text-sm ${
-                                                            formData.paymentMethod === 'efectivo' 
-                                                            ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white' 
-                                                            : 'bg-gray-100 text-gray-600'
-                                                        }`}
-                                                    >
-                                                        💵 Efectivo
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setFormData({...formData, paymentMethod: 'transferencia'})}
-                                                        className={`p-3 rounded-2xl font-bold transition-all text-sm ${
-                                                            formData.paymentMethod === 'transferencia' 
-                                                            ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white' 
-                                                            : 'bg-gray-100 text-gray-600'
-                                                        }`}
-                                                    >
-                                                        🏦 Transfer
-                                                    </button>
+                                                    {['tarjeta', 'efectivo', 'transferencia'].map(method => (
+                                                        <button
+                                                            key={method}
+                                                            type="button"
+                                                            onClick={() => setFormData({...formData, paymentMethod: method})}
+                                                            className={`p-3 rounded-2xl font-bold transition-all text-sm ${
+                                                                formData.paymentMethod === method
+                                                                ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white' 
+                                                                : 'bg-gray-100 text-gray-600'
+                                                            }`}
+                                                        >
+                                                            {method === 'tarjeta' ? '💳 Tarjeta' : method === 'efectivo' ? '💵 Efectivo' : '🏦 Transfer'}
+                                                        </button>
+                                                    ))}
                                                 </div>
                                             </div>
 
                                             <div className="flex gap-3">
                                                 <button
                                                     onClick={saveExpense}
-                                                    className="flex-1 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-2xl p-4 font-bold text-lg active:scale-95 transition-transform shadow-lg"
+                                                    className="flex-1 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-2xl p-4 font-bold text-lg active:scale-95 transition-transform shadow-lg"
                                                 >
                                                     {editingExpense ? 'Actualizar' : 'Guardar'}
                                                 </button>
@@ -629,14 +612,13 @@
                                     </div>
                                 )}
 
-                                {/* Recent Expenses */}
                                 <div>
                                     <h3 className="text-white font-bold mb-4">Gastos Recientes</h3>
                                     {expenses.length === 0 ? (
-                                        <div className="glass-card rounded-3xl p-8 text-center">
+                                        <div className="glass-card-strong rounded-3xl p-8 text-center">
                                             <span className="text-6xl mb-3 block opacity-50">📊</span>
-                                            <p className="text-white opacity-80">No hay gastos aún</p>
-                                            <p className="text-white text-sm opacity-60 mt-2">¡Comienza a registrar!</p>
+                                            <p className="text-white opacity-90">No hay gastos aún</p>
+                                            <p className="text-cyan-200 text-sm opacity-70 mt-2">¡Comienza a registrar!</p>
                                         </div>
                                     ) : (
                                         <div className="space-y-3">
@@ -645,7 +627,7 @@
                                                     <div className="flex items-center gap-4">
                                                         <div 
                                                             className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
-                                                            style={{ background: `${expense.category.color}20` }}
+                                                            style={{ background: `${expense.category.color}25`, border: `2px solid ${expense.category.color}50` }}
                                                         >
                                                             {expense.category.icon}
                                                         </div>
@@ -660,16 +642,10 @@
                                                                 ${expense.amount.toLocaleString('es-CO')}
                                                             </p>
                                                             <div className="flex gap-2 mt-1">
-                                                                <button
-                                                                    onClick={() => editExpense(expense)}
-                                                                    className="text-blue-500 text-xs active:scale-90 transition-transform"
-                                                                >
+                                                                <button onClick={() => editExpense(expense)} className="text-blue-500 text-xs active:scale-90 transition-transform">
                                                                     Editar
                                                                 </button>
-                                                                <button
-                                                                    onClick={() => deleteExpense(expense.id)}
-                                                                    className="text-red-400 text-xs active:scale-90 transition-transform"
-                                                                >
+                                                                <button onClick={() => deleteExpense(expense.id)} className="text-red-400 text-xs active:scale-90 transition-transform">
                                                                     Eliminar
                                                                 </button>
                                                             </div>
@@ -687,7 +663,6 @@
                             <>
                                 <h2 className="text-white text-2xl font-bold mb-4">Historial de Gastos</h2>
                                 
-                                {/* Filter Buttons */}
                                 <div className="glass-card rounded-2xl p-3 mb-6">
                                     <div className="grid grid-cols-4 gap-2">
                                         {['day', 'week', 'month', 'year'].map(filter => (
@@ -696,7 +671,7 @@
                                                 onClick={() => setHistoryFilter(filter)}
                                                 className={`p-2 rounded-xl font-bold text-sm transition-all ${
                                                     historyFilter === filter
-                                                    ? 'bg-white text-purple-600'
+                                                    ? 'bg-gradient-to-r from-cyan-400 to-purple-500 text-white'
                                                     : 'text-white'
                                                 }`}
                                             >
@@ -706,23 +681,21 @@
                                     </div>
                                 </div>
 
-                                {/* Total Filtered */}
-                                <div className="glass-card rounded-2xl p-6 mb-6">
-                                    <p className="text-white text-sm opacity-80 mb-1">Total del período</p>
-                                    <h3 className="text-white text-3xl font-bold">
+                                <div className="glass-card-strong rounded-2xl p-6 mb-6 glow-effect">
+                                    <p className="text-white text-sm opacity-90 mb-1">Total del período</p>
+                                    <h3 className="text-white text-3xl font-bold" style={{textShadow: '0 0 30px rgba(0,245,255,0.6)'}}>
                                         ${getFilteredTotal().toLocaleString('es-CO')}
                                     </h3>
-                                    <p className="text-white text-xs opacity-60 mt-1">
+                                    <p className="text-cyan-200 text-xs opacity-80 mt-1">
                                         {getFilteredExpenses().length} transacciones
                                     </p>
                                 </div>
 
-                                {/* Filtered Expenses List */}
                                 <div className="space-y-3">
                                     {getFilteredExpenses().length === 0 ? (
-                                        <div className="glass-card rounded-3xl p-8 text-center">
+                                        <div className="glass-card-strong rounded-3xl p-8 text-center">
                                             <span className="text-6xl mb-3 block opacity-50">📭</span>
-                                            <p className="text-white opacity-80">No hay gastos en este período</p>
+                                            <p className="text-white opacity-90">No hay gastos en este período</p>
                                         </div>
                                     ) : (
                                         [...getFilteredExpenses()].reverse().map(expense => (
@@ -730,7 +703,7 @@
                                                 <div className="flex items-center gap-4">
                                                     <div 
                                                         className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
-                                                        style={{ background: `${expense.category.color}20` }}
+                                                        style={{ background: `${expense.category.color}25`, border: `2px solid ${expense.category.color}50` }}
                                                     >
                                                         {expense.category.icon}
                                                     </div>
@@ -754,10 +727,7 @@
                                                             >
                                                                 Editar
                                                             </button>
-                                                            <button
-                                                                onClick={() => deleteExpense(expense.id)}
-                                                                className="text-red-400 text-xs active:scale-90 transition-transform"
-                                                            >
+                                                            <button onClick={() => deleteExpense(expense.id)} className="text-red-400 text-xs active:scale-90 transition-transform">
                                                                 Eliminar
                                                             </button>
                                                         </div>
@@ -775,34 +745,27 @@
                                 <h2 className="text-white text-2xl font-bold mb-4">Estadísticas</h2>
                                 
                                 {expenses.length === 0 ? (
-                                    <div className="glass-card rounded-3xl p-8 text-center">
+                                    <div className="glass-card-strong rounded-3xl p-8 text-center">
                                         <span className="text-6xl mb-3 block opacity-50">📈</span>
-                                        <p className="text-white opacity-80">No hay datos suficientes</p>
-                                        <p className="text-white text-sm opacity-60 mt-2">Registra algunos gastos primero</p>
+                                        <p className="text-white opacity-90">No hay datos suficientes</p>
+                                        <p className="text-cyan-200 text-sm opacity-70 mt-2">Registra algunos gastos primero</p>
                                     </div>
                                 ) : (
                                     <>
-                                        {/* Stats Cards */}
                                         <div className="grid grid-cols-2 gap-4 mb-6">
-                                            <div className="glass-card rounded-2xl p-4">
-                                                <p className="text-white text-xs opacity-80 mb-1">Total Mes</p>
-                                                <p className="text-white text-2xl font-bold">${(getTotalMonth()/1000).toFixed(0)}K</p>
-                                            </div>
-                                            <div className="glass-card rounded-2xl p-4">
-                                                <p className="text-white text-xs opacity-80 mb-1">Promedio Diario</p>
-                                                <p className="text-white text-2xl font-bold">${(getTotalMonth()/new Date().getDate()/1000).toFixed(1)}K</p>
-                                            </div>
-                                            <div className="glass-card rounded-2xl p-4">
-                                                <p className="text-white text-xs opacity-80 mb-1">Gastos Totales</p>
-                                                <p className="text-white text-2xl font-bold">{expenses.filter(e => e.month === new Date().toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit' })).length}</p>
-                                            </div>
-                                            <div className="glass-card rounded-2xl p-4">
-                                                <p className="text-white text-xs opacity-80 mb-1">Categorías Usadas</p>
-                                                <p className="text-white text-2xl font-bold">{new Set(expenses.filter(e => e.month === new Date().toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit' })).map(e => e.category.id)).size}</p>
-                                            </div>
+                                            {[
+                                                { label: 'Total Mes', value: `$${(getTotalMonth()/1000).toFixed(0)}K` },
+                                                { label: 'Promedio Diario', value: `$${(getTotalMonth()/new Date().getDate()/1000).toFixed(1)}K` },
+                                                { label: 'Gastos Totales', value: expenses.filter(e => e.month === new Date().toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit' })).length },
+                                                { label: 'Categorías Usadas', value: new Set(expenses.filter(e => e.month === new Date().toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit' })).map(e => e.category.id)).size }
+                                            ].map((stat, idx) => (
+                                                <div key={idx} className="glass-card-strong rounded-2xl p-4">
+                                                    <p className="text-cyan-200 text-xs opacity-90 mb-1">{stat.label}</p>
+                                                    <p className="text-white text-2xl font-bold" style={{textShadow: '0 0 20px rgba(0,245,255,0.5)'}}>{stat.value}</p>
+                                                </div>
+                                            ))}
                                         </div>
 
-                                        {/* Bar Chart */}
                                         <div className="expense-card rounded-3xl p-6 mb-6">
                                             <h3 className="gradient-text font-bold mb-4">Gastos vs Presupuesto</h3>
                                             <div style={{ height: '300px' }}>
@@ -810,7 +773,6 @@
                                             </div>
                                         </div>
 
-                                        {/* Category Breakdown */}
                                         <div className="expense-card rounded-3xl p-6">
                                             <h3 className="gradient-text font-bold mb-4">Detalle por Categoría</h3>
                                             <div className="space-y-3">
@@ -836,7 +798,7 @@
                                                                         className="h-2 rounded-full transition-all"
                                                                         style={{ 
                                                                             width: `${Math.min(percentage, 100)}%`,
-                                                                            background: percentage > 100 ? '#ef4444' : cat.color
+                                                                            background: percentage > 100 ? '#ef4444' : `linear-gradient(90deg, ${cat.color}, ${cat.color}dd)`
                                                                         }}
                                                                     ></div>
                                                                 </div>
@@ -858,9 +820,8 @@
                         )}
                     </div>
 
-                    {/* Profile Modal */}
                     {showProfileModal && (
-                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
                             <div className="expense-card rounded-3xl p-6 max-w-md w-full max-h-[80vh] overflow-y-auto">
                                 <h3 className="gradient-text font-bold text-xl mb-4">Mi Perfil</h3>
                                 
@@ -868,82 +829,44 @@
                                     {userPhoto ? (
                                         <img src={userPhoto} alt="Profile" className="profile-photo-large mb-3" />
                                     ) : (
-                                        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-400 to-indigo-400 flex items-center justify-center text-4xl mb-3">
+                                        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-cyan-400 to-purple-500 flex items-center justify-center text-4xl mb-3 border-4 border-cyan-400">
                                             👤
                                         </div>
                                     )}
-                                    <input 
-                                        type="file" 
-                                        ref={fileInputRef}
-                                        onChange={handlePhotoUpload}
-                                        accept="image/*"
-                                        className="hidden"
-                                    />
+                                    <input type="file" ref={fileInputRef} onChange={handlePhotoUpload} accept="image/*" className="hidden" />
                                     <button
                                         onClick={() => fileInputRef.current?.click()}
-                                        className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white px-4 py-2 rounded-xl font-bold text-sm active:scale-95 transition-transform"
+                                        className="bg-gradient-to-r from-cyan-500 to-purple-500 text-white px-4 py-2 rounded-xl font-bold text-sm active:scale-95 transition-transform"
                                     >
                                         📸 Cambiar Foto
                                     </button>
                                 </div>
 
                                 <div className="space-y-4">
-                                    <div>
-                                        <label className="block text-gray-700 text-sm font-bold mb-2">👤 Nombre</label>
-                                        <input
-                                            type="text"
-                                            value={userName}
-                                            onChange={(e) => setUserName(e.target.value)}
-                                            className="w-full p-3 border-2 border-gray-200 rounded-2xl focus:border-purple-400 focus:outline-none"
-                                            placeholder="Ej: Daniel"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-gray-700 text-sm font-bold mb-2">📱 Teléfono</label>
-                                        <input
-                                            type="tel"
-                                            value={userPhone}
-                                            onChange={(e) => setUserPhone(e.target.value)}
-                                            className="w-full p-3 border-2 border-gray-200 rounded-2xl focus:border-purple-400 focus:outline-none"
-                                            placeholder="Ej: 300 123 4567"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-gray-700 text-sm font-bold mb-2">🆔 Cédula</label>
-                                        <input
-                                            type="text"
-                                            value={userID}
-                                            onChange={(e) => setUserID(e.target.value)}
-                                            className="w-full p-3 border-2 border-gray-200 rounded-2xl focus:border-purple-400 focus:outline-none"
-                                            placeholder="Ej: 1234567890"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-gray-700 text-sm font-bold mb-2">🏠 Dirección</label>
-                                        <input
-                                            type="text"
-                                            value={userAddress}
-                                            onChange={(e) => setUserAddress(e.target.value)}
-                                            className="w-full p-3 border-2 border-gray-200 rounded-2xl focus:border-purple-400 focus:outline-none"
-                                            placeholder="Ej: Calle 123 #45-67"
-                                        />
-                                    </div>
+                                    {[
+                                        { label: '👤 Nombre', value: userName, onChange: setUserName, placeholder: 'Ej: Daniel' },
+                                        { label: '📱 Teléfono', value: userPhone, onChange: setUserPhone, placeholder: 'Ej: 300 123 4567', type: 'tel' },
+                                        { label: '🆔 Cédula', value: userID, onChange: setUserID, placeholder: 'Ej: 1234567890' },
+                                        { label: '🏠 Dirección', value: userAddress, onChange: setUserAddress, placeholder: 'Ej: Calle 123 #45-67' }
+                                    ].map((field, idx) => (
+                                        <div key={idx}>
+                                            <label className="block text-gray-700 text-sm font-bold mb-2">{field.label}</label>
+                                            <input
+                                                type={field.type || 'text'}
+                                                value={field.value}
+                                                onChange={(e) => field.onChange(e.target.value)}
+                                                className="w-full p-3 border-2 border-gray-200 rounded-2xl focus:border-cyan-400 focus:outline-none"
+                                                placeholder={field.placeholder}
+                                            />
+                                        </div>
+                                    ))}
                                 </div>
 
                                 <div className="flex gap-3 mt-6">
-                                    <button
-                                        onClick={saveProfile}
-                                        className="flex-1 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-2xl p-3 font-bold active:scale-95 transition-transform"
-                                    >
+                                    <button onClick={saveProfile} className="flex-1 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-2xl p-3 font-bold active:scale-95 transition-transform">
                                         Guardar
                                     </button>
-                                    <button
-                                        onClick={() => setShowProfileModal(false)}
-                                        className="flex-1 bg-gray-200 text-gray-700 rounded-2xl p-3 font-bold active:scale-95 transition-transform"
-                                    >
+                                    <button onClick={() => setShowProfileModal(false)} className="flex-1 bg-gray-200 text-gray-700 rounded-2xl p-3 font-bold active:scale-95 transition-transform">
                                         Cancelar
                                     </button>
                                 </div>
@@ -951,45 +874,33 @@
                         </div>
                     )}
 
-                    {/* Bottom Navigation */}
-                    <div className="fixed bottom-0 left-0 right-0 glass-card border-t border-white border-opacity-20">
+                    <div className="fixed bottom-0 left-0 right-0 glass-card border-t border-white border-opacity-30">
                         <div className="flex justify-around items-center p-2 max-w-2xl mx-auto">
-                            <button
-                                onClick={() => setActiveTab('home')}
-                                className={`flex flex-col items-center p-3 rounded-2xl flex-1 transition-all ${
-                                    activeTab === 'home' ? 'tab-active' : ''
-                                }`}
-                            >
-                                <span className="text-2xl mb-1">🏠</span>
-                                <span className="text-xs font-bold text-white">Inicio</span>
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('history')}
-                                className={`flex flex-col items-center p-3 rounded-2xl flex-1 transition-all ${
-                                    activeTab === 'history' ? 'tab-active' : ''
-                                }`}
-                            >
-                                <span className="text-2xl mb-1">📋</span>
-                                <span className="text-xs font-bold text-white">Historial</span>
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('stats')}
-                                className={`flex flex-col items-center p-3 rounded-2xl flex-1 transition-all ${
-                                    activeTab === 'stats' ? 'tab-active' : ''
-                                }`}
-                            >
-                                <span className="text-2xl mb-1">📊</span>
-                                <span className="text-xs font-bold text-white">Stats</span>
-                            </button>
-                            <button
-                                onClick={() => setShowProfileModal(true)}
-                                className={`flex flex-col items-center p-3 rounded-2xl flex-1 transition-all ${
-                                    showProfileModal ? 'tab-active' : ''
-                                }`}
-                            >
-                                <span className="text-2xl mb-1">👤</span>
-                                <span className="text-xs font-bold text-white">Perfil</span>
-                            </button>
+                            {[
+                                { tab: 'home', icon: '🏠', label: 'Inicio' },
+                                { tab: 'history', icon: '📋', label: 'Historial' },
+                                { tab: 'stats', icon: '✨', label: 'Stats' },
+                                { tab: 'profile', icon: userPhoto, label: 'Perfil', isProfile: true, action: () => setShowProfileModal(true) }
+                            ].map(item => (
+                                <button
+                                    key={item.tab}
+                                    onClick={() => item.action ? item.action() : setActiveTab(item.tab)}
+                                    className={`flex flex-col items-center p-3 rounded-2xl flex-1 transition-all ${
+                                        activeTab === item.tab || (item.isProfile && showProfileModal) ? 'tab-active' : ''
+                                    }`}
+                                >
+                                    {item.isProfile ? (
+                                        userPhoto ? (
+                                            <img src={userPhoto} alt="Profile" className="profile-mini mb-1" />
+                                        ) : (
+                                            <span className="text-2xl mb-1">👤</span>
+                                        )
+                                    ) : (
+                                        <span className="text-2xl mb-1">{item.icon}</span>
+                                    )}
+                                    <span className="text-xs font-bold text-white">{item.label}</span>
+                                </button>
+                            ))}
                         </div>
                     </div>
                 </div>
