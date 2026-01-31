@@ -137,15 +137,19 @@
             const [userID, setUserID] = useState('');
             const [userAddress, setUserAddress] = useState('');
             const [userPhoto, setUserPhoto] = useState('');
+            const [monthlyBudget, setMonthlyBudget] = useState(0);
+            const [showBudgetModal, setShowBudgetModal] = useState(false);
+            const [tempBudget, setTempBudget] = useState('');
             const [showProfileModal, setShowProfileModal] = useState(false);
             const [editingExpense, setEditingExpense] = useState(null);
             const [historyFilter, setHistoryFilter] = useState('month');
             const [reportPeriod, setReportPeriod] = useState('month');
             const fileInputRef = useRef(null);
+            const backupInputRef = useRef(null);
             const categoriesGridRef = useRef(null);
             
             const [categories, setCategories] = useState([
-                { id: 1, name: 'Alimentación', icon: '🍔', color: '#FF6B6B', budget: 500000 },
+                { id: 1, name: 'Alimentacion', icon: '🍔', color: '#FF6B6B', budget: 500000 },
                 { id: 2, name: 'Deporte', icon: '⚽', color: '#4ECDC4', budget: 200000 },
                 { id: 3, name: 'Servicios', icon: '💡', color: '#FFD93D', budget: 300000 },
                 { id: 4, name: 'Arriendo', icon: '🏠', color: '#95E1D3', budget: 1500000 },
@@ -201,6 +205,9 @@
                     localStorage.setItem('budgets', JSON.stringify(defaultBudgets));
                 }
                 
+                const savedMonthlyBudget = localStorage.getItem('monthlyBudget');
+                if (savedMonthlyBudget) setMonthlyBudget(parseFloat(savedMonthlyBudget));
+                
                 setUserName(localStorage.getItem('userName') || 'Daniel');
                 setUserPhone(localStorage.getItem('userPhone') || '');
                 setUserID(localStorage.getItem('userID') || '');
@@ -240,6 +247,111 @@
                 }
             }, [activeTab, expenses]);
 
+            const saveBudget = () => {
+                const budget = parseFloat(tempBudget);
+                if (budget && budget > 0) {
+                    setMonthlyBudget(budget);
+                    localStorage.setItem('monthlyBudget', budget.toString());
+                    setShowBudgetModal(false);
+                    setTempBudget('');
+                    alert('✅ Presupuesto mensual guardado');
+                } else {
+                    alert('Por favor ingresa un monto válido');
+                }
+            };
+
+            const exportBackup = () => {
+                const backup = {
+                    version: '1.0',
+                    date: new Date().toISOString(),
+                    data: {
+                        expenses: expenses,
+                        categories: categories,
+                        budgets: budgets,
+                        monthlyBudget: monthlyBudget,
+                        userName: userName,
+                        userPhone: userPhone,
+                        userID: userID,
+                        userAddress: userAddress,
+                        userPhoto: userPhoto
+                    }
+                };
+
+                const dataStr = JSON.stringify(backup, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `respaldo_mis_gastos_${new Date().toISOString().split('T')[0]}.json`;
+                link.click();
+                URL.revokeObjectURL(url);
+                
+                alert('✅ Respaldo exportado correctamente!');
+            };
+
+            const importBackup = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const backup = JSON.parse(event.target.result);
+                        
+                        if (!backup.data) {
+                            alert('❌ Archivo de respaldo inválido');
+                            return;
+                        }
+
+                        if (confirm('⚠️ Esto reemplazará todos tus datos actuales. ¿Continuar?')) {
+                            if (backup.data.expenses) {
+                                setExpenses(backup.data.expenses);
+                                localStorage.setItem('expenses', JSON.stringify(backup.data.expenses));
+                            }
+                            if (backup.data.categories) {
+                                setCategories(backup.data.categories);
+                                localStorage.setItem('categoriesOrder', JSON.stringify(backup.data.categories));
+                            }
+                            if (backup.data.budgets) {
+                                setBudgets(backup.data.budgets);
+                                localStorage.setItem('budgets', JSON.stringify(backup.data.budgets));
+                            }
+                            if (backup.data.monthlyBudget) {
+                                setMonthlyBudget(backup.data.monthlyBudget);
+                                localStorage.setItem('monthlyBudget', backup.data.monthlyBudget.toString());
+                            }
+                            if (backup.data.userName) {
+                                setUserName(backup.data.userName);
+                                localStorage.setItem('userName', backup.data.userName);
+                            }
+                            if (backup.data.userPhone) {
+                                setUserPhone(backup.data.userPhone);
+                                localStorage.setItem('userPhone', backup.data.userPhone);
+                            }
+                            if (backup.data.userID) {
+                                setUserID(backup.data.userID);
+                                localStorage.setItem('userID', backup.data.userID);
+                            }
+                            if (backup.data.userAddress) {
+                                setUserAddress(backup.data.userAddress);
+                                localStorage.setItem('userAddress', backup.data.userAddress);
+                            }
+                            if (backup.data.userPhoto) {
+                                setUserPhoto(backup.data.userPhoto);
+                                localStorage.setItem('userPhoto', backup.data.userPhoto);
+                            }
+
+                            alert('✅ ¡Respaldo restaurado exitosamente!');
+                            window.location.reload();
+                        }
+                    } catch (error) {
+                        alert('❌ Error al leer el archivo de respaldo');
+                        console.error(error);
+                    }
+                };
+                reader.readAsText(file);
+            };
+
             const handlePhotoUpload = (e) => {
                 const file = e.target.files[0];
                 if (file) {
@@ -273,7 +385,7 @@
                         ? {
                             ...exp,
                             amount: parseFloat(formData.amount),
-                            description: formData.description || 'Sin descripción',
+                            description: formData.description || 'Sin descripcion',
                             category: categories.find(c => c.id === parseInt(formData.category)),
                             paymentMethod: formData.paymentMethod
                         }
@@ -287,7 +399,7 @@
                     const newExpense = {
                         id: Date.now(),
                         amount: parseFloat(formData.amount),
-                        description: formData.description || 'Sin descripción',
+                        description: formData.description || 'Sin descripcion',
                         category: categories.find(c => c.id === parseInt(formData.category)),
                         paymentMethod: formData.paymentMethod,
                         date: new Date().toISOString(),
@@ -309,7 +421,7 @@
                 setEditingExpense(expense);
                 setFormData({
                     amount: expense.amount.toString(),
-                    description: expense.description === 'Sin descripción' ? '' : expense.description,
+                    description: expense.description === 'Sin descripcion' ? '' : expense.description,
                     category: expense.category.id.toString(),
                     paymentMethod: expense.paymentMethod
                 });
@@ -376,107 +488,164 @@
                 
                 const periodNames = { week: 'Semanal', month: 'Mensual', year: 'Anual' };
                 
-                doc.setFontSize(20);
-                doc.setTextColor(102, 126, 234);
-                doc.text('Informe Financiero Inteligente', 105, 20, { align: 'center' });
+                // Header con diseño moderno
+                doc.setFillColor(102, 126, 234);
+                doc.rect(0, 0, 210, 45, 'F');
+                
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(24);
+                doc.setFont(undefined, 'bold');
+                doc.text('INFORME FINANCIERO', 105, 20, { align: 'center' });
                 
                 doc.setFontSize(12);
-                doc.setTextColor(100, 100, 100);
+                doc.setFont(undefined, 'normal');
                 doc.text(`Periodo: ${periodNames[reportPeriod]}`, 105, 28, { align: 'center' });
-                doc.text(`Generado: ${new Date().toLocaleDateString('es-CO', { dateStyle: 'full' })}`, 105, 34, { align: 'center' });
-                doc.text(`Usuario: ${userName}`, 105, 40, { align: 'center' });
+                doc.text(`${new Date().toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })}`, 105, 35, { align: 'center' });
+                doc.text(`Usuario: ${userName}`, 105, 42, { align: 'center' });
                 
-                doc.setDrawColor(102, 126, 234);
-                doc.line(20, 45, 190, 45);
-                
+                // Resumen ejecutivo con cajas
+                let y = 55;
+                doc.setTextColor(0, 0, 0);
                 doc.setFontSize(16);
-                doc.setTextColor(0, 0, 0);
-                doc.text('Resumen Ejecutivo', 20, 55);
+                doc.setFont(undefined, 'bold');
+                doc.text('RESUMEN EJECUTIVO', 20, y);
                 
-                doc.setFontSize(11);
-                doc.setTextColor(60, 60, 60);
-                doc.text(`Total gastado: $${totalReport.toLocaleString('es-CO')}`, 25, 65);
-                doc.text(`Numero de transacciones: ${reportExpenses.length}`, 25, 72);
-                doc.text(`Gasto promedio: $${(totalReport / reportExpenses.length).toFixed(0).toLocaleString('es-CO')}`, 25, 79);
+                y += 10;
                 
-                const totalBudget = Object.values(budgets).reduce((a, b) => a + b, 0);
-                const budgetUsage = ((totalReport / totalBudget) * 100).toFixed(1);
-                doc.text(`Presupuesto usado: ${budgetUsage}%`, 25, 86);
-                
-                doc.setFontSize(14);
-                doc.setTextColor(0, 0, 0);
-                doc.text('Gastos por Categoria', 20, 100);
-                
-                let y = 108;
+                // Caja de total gastado
+                doc.setFillColor(255, 107, 107);
+                doc.roundedRect(20, y, 85, 25, 3, 3, 'F');
+                doc.setTextColor(255, 255, 255);
                 doc.setFontSize(10);
+                doc.setFont(undefined, 'normal');
+                doc.text('Total Gastado', 25, y + 8);
+                doc.setFontSize(16);
+                doc.setFont(undefined, 'bold');
+                doc.text(`$${totalReport.toLocaleString('es-CO')}`, 25, y + 18);
+                
+                // Caja de presupuesto
+                doc.setFillColor(78, 205, 196);
+                doc.roundedRect(110, y, 85, 25, 3, 3, 'F');
+                doc.setFontSize(10);
+                doc.setFont(undefined, 'normal');
+                doc.text('Presupuesto Mensual', 115, y + 8);
+                doc.setFontSize(16);
+                doc.setFont(undefined, 'bold');
+                if (monthlyBudget > 0) {
+                    doc.text(`$${monthlyBudget.toLocaleString('es-CO')}`, 115, y + 18);
+                } else {
+                    doc.setFontSize(12);
+                    doc.text('No definido', 115, y + 18);
+                }
+                
+                y += 32;
+                
+                // Caja de transacciones
+                doc.setFillColor(170, 150, 218);
+                doc.roundedRect(20, y, 85, 25, 3, 3, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(10);
+                doc.setFont(undefined, 'normal');
+                doc.text('Transacciones', 25, y + 8);
+                doc.setFontSize(16);
+                doc.setFont(undefined, 'bold');
+                doc.text(`${reportExpenses.length}`, 25, y + 18);
+                
+                // Caja de promedio
+                doc.setFillColor(255, 209, 61);
+                doc.roundedRect(110, y, 85, 25, 3, 3, 'F');
+                doc.setFontSize(10);
+                doc.setFont(undefined, 'normal');
+                doc.text('Gasto Promedio', 115, y + 8);
+                doc.setFontSize(16);
+                doc.setFont(undefined, 'bold');
+                doc.text(`$${(totalReport / reportExpenses.length).toFixed(0).toLocaleString('es-CO')}`, 115, y + 18);
+                
+                y += 35;
+                
+                // Porcentaje usado del presupuesto mensual
+                if (monthlyBudget > 0) {
+                    const budgetUsage = ((totalReport / monthlyBudget) * 100).toFixed(1);
+                    doc.setFillColor(240, 147, 251);
+                    doc.roundedRect(20, y, 175, 20, 3, 3, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(12);
+                    doc.setFont(undefined, 'bold');
+                    doc.text(`Presupuesto Usado: ${budgetUsage}%`, 25, y + 8);
+                    
+                    // Barra de progreso
+                    doc.setDrawColor(255, 255, 255);
+                    doc.setLineWidth(0.5);
+                    doc.roundedRect(25, y + 12, 165, 5, 2, 2, 'S');
+                    doc.setFillColor(255, 255, 255);
+                    const barWidth = Math.min((budgetUsage / 100) * 165, 165);
+                    doc.roundedRect(25, y + 12, barWidth, 5, 2, 2, 'F');
+                    
+                    y += 25;
+                }
+                
+                // Gastos por categoría
+                y += 5;
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(16);
+                doc.setFont(undefined, 'bold');
+                doc.text('GASTOS POR CATEGORIA', 20, y);
+                
+                y += 8;
+                doc.setDrawColor(102, 126, 234);
+                doc.setLineWidth(0.5);
+                doc.line(20, y, 190, y);
+                
+                y += 8;
+                doc.setFontSize(10);
+                doc.setFont(undefined, 'normal');
+                
                 categories.forEach(cat => {
                     const catExpenses = reportExpenses.filter(e => e.category.id === cat.id);
                     const catTotal = catExpenses.reduce((sum, e) => sum + e.amount, 0);
                     
                     if (catTotal > 0) {
-                        const catBudget = budgets[cat.id] || 0;
-                        const catPercent = catBudget > 0 ? ((catTotal / catBudget) * 100).toFixed(0) : 0;
-                        
-                        doc.setTextColor(60, 60, 60);
-                        doc.text(`${cat.icon} ${cat.name}`, 25, y);
-                        doc.text(`$${catTotal.toLocaleString('es-CO')}`, 120, y);
-                        
-                        if (catPercent > 100) {
-                            doc.setTextColor(239, 68, 68);
-                            doc.text(`(${catPercent}% - ALERTA!)`, 155, y);
-                        } else if (catPercent > 80) {
-                            doc.setTextColor(251, 146, 60);
-                            doc.text(`(${catPercent}%)`, 155, y);
-                        } else {
-                            doc.setTextColor(34, 197, 94);
-                            doc.text(`(${catPercent}%)`, 155, y);
-                        }
-                        
-                        y += 7;
-                        
                         if (y > 270) {
                             doc.addPage();
                             y = 20;
                         }
+                        
+                        doc.setTextColor(60, 60, 60);
+                        doc.setFont(undefined, 'bold');
+                        doc.text(cat.name, 25, y);
+                        doc.setFont(undefined, 'normal');
+                        doc.text(`$${catTotal.toLocaleString('es-CO')}`, 120, y);
+                        
+                        const catPercent = monthlyBudget > 0 ? ((catTotal / monthlyBudget) * 100).toFixed(1) : 0;
+                        if (catPercent > 0) {
+                            doc.text(`${catPercent}%`, 165, y);
+                        }
+                        
+                        y += 6;
                     }
                 });
                 
-                y += 10;
-                if (y > 250) {
-                    doc.addPage();
-                    y = 20;
-                }
+                // Nueva página para análisis
+                doc.addPage();
+                y = 20;
                 
-                doc.setFontSize(14);
+                // Header de análisis
+                doc.setFillColor(102, 126, 234);
+                doc.rect(0, 0, 210, 30, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(20);
+                doc.setFont(undefined, 'bold');
+                doc.text('ANALISIS DE GASTOS', 105, 20, { align: 'center' });
+                
+                y = 45;
                 doc.setTextColor(0, 0, 0);
-                doc.text('Analisis y Recomendaciones', 20, y);
-                
-                y += 10;
                 doc.setFontSize(10);
-                doc.setTextColor(60, 60, 60);
+                doc.setFont(undefined, 'normal');
                 
-                const recommendations = [];
+                // Análisis detallado
+                const analysis = [];
                 
-                categories.forEach(cat => {
-                    const catTotal = reportExpenses.filter(e => e.category.id === cat.id).reduce((sum, e) => sum + e.amount, 0);
-                    const catBudget = budgets[cat.id] || 0;
-                    const catPercent = catBudget > 0 ? (catTotal / catBudget) * 100 : 0;
-                    
-                    if (catPercent > 100) {
-                        recommendations.push(`⚠️  CRITICO: Has excedido el presupuesto de ${cat.name} en un ${(catPercent - 100).toFixed(0)}%. Considera reducir gastos en esta categoria.`);
-                    } else if (catPercent > 80) {
-                        recommendations.push(`⚡ ATENCION: Estas cerca del limite en ${cat.name} (${catPercent.toFixed(0)}%). Modera tus gastos para evitar excesos.`);
-                    }
-                });
-                
-                if (budgetUsage > 90) {
-                    recommendations.push(`🚨 Has usado el ${budgetUsage}% de tu presupuesto total. Es urgente reducir gastos para no exceder tu limite.`);
-                } else if (budgetUsage > 70) {
-                    recommendations.push(`📊 Has usado el ${budgetUsage}% de tu presupuesto. Vas por buen camino, mantente atento al gasto.`);
-                } else {
-                    recommendations.push(`✅ Excelente! Solo has usado el ${budgetUsage}% de tu presupuesto. Sigue asi y podras ahorrar este periodo.`);
-                }
-                
+                // Análisis de mayor gasto
                 const topCategory = categories
                     .map(cat => ({
                         name: cat.name,
@@ -486,71 +655,64 @@
                     .sort((a, b) => b.total - a.total)[0];
                 
                 if (topCategory) {
-                    recommendations.push(`💡 Tu categoria de mayor gasto es ${topCategory.name} ($${topCategory.total.toLocaleString('es-CO')}). Analiza si puedes optimizar estos gastos.`);
+                    const percent = ((topCategory.total / totalReport) * 100).toFixed(1);
+                    analysis.push(`Tu categoria de mayor gasto es ${topCategory.name}, representando el ${percent}% del total con $${topCategory.total.toLocaleString('es-CO')}.`);
                 }
                 
+                // Análisis de promedio diario
                 const avgDaily = totalReport / (reportPeriod === 'week' ? 7 : reportPeriod === 'month' ? 30 : 365);
-                recommendations.push(`📈 Tu gasto diario promedio es de $${avgDaily.toFixed(0).toLocaleString('es-CO')}. Mantener este ritmo te ayudara a cumplir tus metas.`);
+                analysis.push(`Tu gasto diario promedio es de $${avgDaily.toFixed(0).toLocaleString('es-CO')}.`);
                 
-                if (recommendations.length === 0) {
-                    recommendations.push(`✨ ¡Felicitaciones! Tus finanzas estan bien controladas. Continua con este excelente habito.`);
+                // Análisis del presupuesto mensual
+                if (monthlyBudget > 0) {
+                    const remaining = monthlyBudget - totalReport;
+                    const percentUsed = ((totalReport / monthlyBudget) * 100).toFixed(1);
+                    
+                    if (totalReport > monthlyBudget) {
+                        analysis.push(`Has excedido tu presupuesto mensual en $${Math.abs(remaining).toLocaleString('es-CO')} (${(percentUsed - 100).toFixed(1)}% sobre el limite).`);
+                    } else {
+                        analysis.push(`Te quedan $${remaining.toLocaleString('es-CO')} disponibles del presupuesto mensual (${percentUsed}% utilizado).`);
+                    }
                 }
                 
-                recommendations.forEach(rec => {
-                    const lines = doc.splitTextToSize(rec, 170);
+                // Análisis de distribución
+                const categoryCount = new Set(reportExpenses.map(e => e.category.id)).size;
+                analysis.push(`Has realizado gastos en ${categoryCount} categorias diferentes durante este periodo.`);
+                
+                // Análisis de método de pago más usado
+                const paymentMethods = {};
+                reportExpenses.forEach(e => {
+                    paymentMethods[e.paymentMethod] = (paymentMethods[e.paymentMethod] || 0) + 1;
+                });
+                const topPayment = Object.entries(paymentMethods).sort((a, b) => b[1] - a[1])[0];
+                if (topPayment) {
+                    analysis.push(`Tu metodo de pago mas utilizado es ${topPayment[0]} (${topPayment[1]} transacciones).`);
+                }
+                
+                // Renderizar análisis
+                analysis.forEach(text => {
+                    const lines = doc.splitTextToSize(text, 170);
                     lines.forEach(line => {
                         if (y > 280) {
                             doc.addPage();
                             y = 20;
                         }
-                        doc.text(line, 25, y);
+                        doc.text(`• ${line}`, 20, y);
                         y += 6;
                     });
                     y += 3;
                 });
                 
-                y += 10;
-                if (y > 270) {
-                    doc.addPage();
-                    y = 20;
-                }
-                
-                doc.setFontSize(14);
-                doc.setTextColor(0, 0, 0);
-                doc.text('Consejos para Mejorar', 20, y);
-                
-                y += 10;
-                doc.setFontSize(10);
-                doc.setTextColor(60, 60, 60);
-                
-                const tips = [
-                    '1. Establece un presupuesto realista: Revisa tus gastos y ajusta los limites segun tus necesidades reales.',
-                    '2. Registra todos tus gastos: La disciplina de anotar cada gasto te ayudara a tomar conciencia.',
-                    '3. Identifica gastos innecesarios: Revisa gastos pequenos que se acumulan (cafe, snacks, suscripciones).',
-                    '4. Usa el metodo 50/30/20: 50% necesidades, 30% deseos, 20% ahorro.',
-                    '5. Revisa este informe regularmente: El seguimiento constante es clave para el exito financiero.'
-                ];
-                
-                tips.forEach(tip => {
-                    const lines = doc.splitTextToSize(tip, 170);
-                    lines.forEach(line => {
-                        if (y > 280) {
-                            doc.addPage();
-                            y = 20;
-                        }
-                        doc.text(line, 25, y);
-                        y += 6;
-                    });
-                    y += 2;
-                });
-                
+                // Footer en todas las páginas
                 const pageCount = doc.internal.getNumberOfPages();
                 for (let i = 1; i <= pageCount; i++) {
                     doc.setPage(i);
+                    doc.setFillColor(102, 126, 234);
+                    doc.rect(0, 285, 210, 12, 'F');
                     doc.setFontSize(8);
-                    doc.setTextColor(150, 150, 150);
-                    doc.text(`Pagina ${i} de ${pageCount}`, 105, 290, { align: 'center' });
-                    doc.text('Generado por Control de Gastos - Informe Inteligente', 105, 295, { align: 'center' });
+                    doc.setTextColor(255, 255, 255);
+                    doc.text(`Pagina ${i} de ${pageCount}`, 105, 291, { align: 'center' });
+                    doc.text('Control de Gastos - Informe Inteligente', 105, 295, { align: 'center' });
                 }
                 
                 doc.save(`Informe_${periodNames[reportPeriod]}_${userName}_${new Date().toISOString().split('T')[0]}.pdf`);
@@ -649,6 +811,16 @@
                 });
             };
 
+            const getRemainingBudget = () => {
+                if (monthlyBudget === 0) return 0;
+                return monthlyBudget - getTotalMonth();
+            };
+
+            const getBudgetPercentage = () => {
+                if (monthlyBudget === 0) return 0;
+                return Math.min((getTotalMonth() / monthlyBudget) * 100, 100);
+            };
+
             return (
                 <div className="min-h-screen pb-24">
                     <div className="p-6 pb-8">
@@ -687,6 +859,46 @@
                                     </div>
                                     <div className="absolute -right-12 -bottom-12 text-9xl opacity-10 float-animation">💰</div>
                                 </div>
+
+                                {monthlyBudget > 0 ? (
+                                    <div className="glass-card-strong rounded-3xl p-6 mb-6">
+                                        <div className="flex justify-between items-center mb-3">
+                                            <h3 className="text-white font-bold">Presupuesto Mensual</h3>
+                                            <button 
+                                                onClick={() => {
+                                                    setTempBudget(monthlyBudget.toString());
+                                                    setShowBudgetModal(true);
+                                                }}
+                                                className="text-cyan-200 text-sm active:scale-90 transition-transform"
+                                            >
+                                                Editar
+                                            </button>
+                                        </div>
+                                        <div className="flex justify-between items-center mb-2">
+                                            <span className="text-white text-sm opacity-90">Disponible</span>
+                                            <span className={`text-white text-lg font-bold ${getRemainingBudget() < 0 ? 'text-red-300' : ''}`}>
+                                                ${Math.abs(getRemainingBudget()).toLocaleString('es-CO')}
+                                            </span>
+                                        </div>
+                                        <div className="w-full bg-white bg-opacity-20 rounded-full h-3 mb-2">
+                                            <div 
+                                                className={`h-3 rounded-full transition-all ${getBudgetPercentage() > 90 ? 'bg-red-400' : getBudgetPercentage() > 70 ? 'bg-yellow-400' : 'bg-green-400'}`}
+                                                style={{ width: `${getBudgetPercentage()}%` }}
+                                            ></div>
+                                        </div>
+                                        <p className="text-white text-xs opacity-70 text-center">
+                                            {getBudgetPercentage().toFixed(0)}% usado de ${monthlyBudget.toLocaleString('es-CO')}
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <button
+                                        onClick={() => setShowBudgetModal(true)}
+                                        className="w-full glass-card-strong rounded-3xl p-6 mb-6 active:scale-98 transition-transform"
+                                    >
+                                        <p className="text-white font-bold mb-2">💡 Establece tu presupuesto mensual</p>
+                                        <p className="text-cyan-200 text-sm opacity-80">Define cuánto quieres gastar este mes</p>
+                                    </button>
+                                )}
 
                                 {expenses.length > 0 && (
                                     <div className="glass-card-strong rounded-3xl p-6 mb-6">
@@ -965,8 +1177,36 @@
                                 ) : (
                                     <>
                                         <div className="glass-card-strong rounded-2xl p-4 mb-6">
+                                            <h3 className="text-white font-bold mb-3">🛡️ Gestión de Respaldos</h3>
+                                            <p className="text-cyan-200 text-xs mb-4 opacity-80">Protege tus datos con respaldos seguros</p>
+                                            <div className="grid grid-cols-2 gap-3 mb-4">
+                                                <button
+                                                    onClick={exportBackup}
+                                                    className="bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl p-3 font-bold active:scale-95 transition-transform flex items-center justify-center gap-2"
+                                                >
+                                                    <span>💾</span>
+                                                    <span>Exportar</span>
+                                                </button>
+                                                <button
+                                                    onClick={() => backupInputRef.current?.click()}
+                                                    className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl p-3 font-bold active:scale-95 transition-transform flex items-center justify-center gap-2"
+                                                >
+                                                    <span>📥</span>
+                                                    <span>Importar</span>
+                                                </button>
+                                            </div>
+                                            <input 
+                                                type="file" 
+                                                ref={backupInputRef}
+                                                onChange={importBackup}
+                                                accept=".json"
+                                                className="hidden"
+                                            />
+                                        </div>
+
+                                        <div className="glass-card-strong rounded-2xl p-4 mb-6">
                                             <h3 className="text-white font-bold mb-3">📄 Generar Informe Inteligente</h3>
-                                            <p className="text-cyan-200 text-xs mb-4 opacity-80">Análisis completo con recomendaciones personalizadas</p>
+                                            <p className="text-cyan-200 text-xs mb-4 opacity-80">Análisis detallado con diseño profesional</p>
                                             <div className="grid grid-cols-3 gap-2 mb-4">
                                                 {['week', 'month', 'year'].map(period => (
                                                     <button
@@ -1058,6 +1298,33 @@
                             </>
                         )}
                     </div>
+
+                    {showBudgetModal && (
+                        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+                            <div className="expense-card rounded-3xl p-6 max-w-md w-full">
+                                <h3 className="gradient-text font-bold text-xl mb-4">Presupuesto Mensual</h3>
+                                <p className="text-gray-600 text-sm mb-4">Define cuánto quieres gastar este mes</p>
+                                <input
+                                    type="number"
+                                    value={tempBudget}
+                                    onChange={(e) => setTempBudget(e.target.value)}
+                                    className="w-full p-4 border-2 border-gray-200 rounded-2xl focus:border-cyan-400 focus:outline-none text-2xl font-bold mb-6"
+                                    placeholder="0"
+                                />
+                                <div className="flex gap-3">
+                                    <button onClick={saveBudget} className="flex-1 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-2xl p-3 font-bold active:scale-95 transition-transform">
+                                        Guardar
+                                    </button>
+                                    <button onClick={() => {
+                                        setShowBudgetModal(false);
+                                        setTempBudget('');
+                                    }} className="flex-1 bg-gray-200 text-gray-700 rounded-2xl p-3 font-bold active:scale-95 transition-transform">
+                                        Cancelar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     {showProfileModal && (
                         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
