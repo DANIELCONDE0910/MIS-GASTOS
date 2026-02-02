@@ -522,7 +522,6 @@
                 
                 const periodNames = { week: 'Semanal', month: 'Mensual', year: 'Anual' };
                 
-                // Header con diseño masculino
                 doc.setFillColor(10, 10, 10);
                 doc.rect(0, 0, 210, 45, 'F');
                 
@@ -538,7 +537,6 @@
                 doc.text(`${new Date().toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })}`, 105, 35, { align: 'center' });
                 doc.text(`Usuario: ${userName}`, 105, 42, { align: 'center' });
                 
-                // Resumen ejecutivo con cajas oscuras y doradas
                 let y = 55;
                 doc.setTextColor(212, 175, 55);
                 doc.setFontSize(16);
@@ -547,7 +545,6 @@
                 
                 y += 10;
                 
-                // Caja de total gastado - Negro con bordes dorados
                 doc.setFillColor(20, 20, 20);
                 doc.roundedRect(20, y, 85, 25, 3, 3, 'F');
                 doc.setDrawColor(212, 175, 55);
@@ -562,7 +559,6 @@
                 doc.setFont(undefined, 'bold');
                 doc.text(`$${totalReport.toLocaleString('es-CO')}`, 25, y + 18);
                 
-                // Caja de presupuesto
                 doc.setFillColor(20, 20, 20);
                 doc.roundedRect(110, y, 85, 25, 3, 3, 'F');
                 doc.setDrawColor(184, 134, 11);
@@ -583,7 +579,6 @@
                 
                 y += 32;
                 
-                // Caja de transacciones
                 doc.setFillColor(20, 20, 20);
                 doc.roundedRect(20, y, 85, 25, 3, 3, 'F');
                 doc.setDrawColor(192, 192, 192);
@@ -597,7 +592,6 @@
                 doc.setFont(undefined, 'bold');
                 doc.text(`${reportExpenses.length}`, 25, y + 18);
                 
-                // Caja de promedio
                 doc.setFillColor(20, 20, 20);
                 doc.roundedRect(110, y, 85, 25, 3, 3, 'F');
                 doc.setDrawColor(218, 165, 32);
@@ -613,7 +607,6 @@
                 
                 y += 35;
                 
-                // Porcentaje usado del presupuesto mensual
                 if (monthlyBudget > 0) {
                     const budgetUsage = ((totalReport / monthlyBudget) * 100).toFixed(1);
                     doc.setFillColor(30, 30, 30);
@@ -625,7 +618,6 @@
                     doc.setFont(undefined, 'bold');
                     doc.text(`Presupuesto Usado: ${budgetUsage}%`, 25, y + 8);
                     
-                    // Barra de progreso dorada
                     doc.setDrawColor(100, 100, 100);
                     doc.setLineWidth(0.5);
                     doc.roundedRect(25, y + 12, 165, 5, 2, 2, 'S');
@@ -636,7 +628,6 @@
                     y += 25;
                 }
                 
-                // Gastos por categoría
                 y += 5;
                 doc.setTextColor(212, 175, 55);
                 doc.setFontSize(16);
@@ -679,11 +670,9 @@
                     }
                 });
                 
-                // Nueva página para análisis
                 doc.addPage();
                 y = 20;
                 
-                // Header de análisis
                 doc.setFillColor(10, 10, 10);
                 doc.rect(0, 0, 210, 30, 'F');
                 doc.setTextColor(212, 175, 55);
@@ -696,7 +685,6 @@
                 doc.setFontSize(10);
                 doc.setFont(undefined, 'normal');
                 
-                // Análisis detallado
                 const analysis = [];
                 
                 const topCategory = categories
@@ -738,7 +726,6 @@
                     analysis.push(`Tu metodo de pago mas utilizado es ${topPayment[0]} (${topPayment[1]} transacciones).`);
                 }
                 
-                // Análisis de observaciones
                 const expensesWithObs = reportExpenses.filter(e => e.observations && e.observations.trim() !== '');
                 if (expensesWithObs.length > 0) {
                     analysis.push(`Has agregado observaciones a ${expensesWithObs.length} gastos para un mejor seguimiento.`);
@@ -757,7 +744,6 @@
                     y += 3;
                 });
                 
-                // Footer en todas las páginas
                 const pageCount = doc.internal.getNumberOfPages();
                 for (let i = 1; i <= pageCount; i++) {
                     doc.setPage(i);
