@@ -128,6 +128,14 @@
         .silver-text {
             color: #C0C0C0;
         }
+        .observation-badge {
+            background: linear-gradient(135deg, #D4AF37, #FFD700);
+            color: #000;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -155,6 +163,8 @@
             const [editingExpense, setEditingExpense] = useState(null);
             const [historyFilter, setHistoryFilter] = useState('month');
             const [reportPeriod, setReportPeriod] = useState('month');
+            const [showObservationModal, setShowObservationModal] = useState(false);
+            const [selectedExpenseForObs, setSelectedExpenseForObs] = useState(null);
             const fileInputRef = useRef(null);
             const backupInputRef = useRef(null);
             const categoriesGridRef = useRef(null);
@@ -171,7 +181,10 @@
                 { id: 10, name: 'Salud', icon: '💊', color: '#9C8960', budget: 200000 },
                 { id: 11, name: 'Hormigas', icon: '🐜', color: '#8B7D6B', budget: 150000 },
                 { id: 12, name: 'Aseo', icon: '🧹', color: '#D2B48C', budget: 100000 },
-                { id: 13, name: 'Domicilios', icon: '🛵', color: '#DAA520', budget: 200000 }
+                { id: 13, name: 'Domicilios', icon: '🛵', color: '#DAA520', budget: 200000 },
+                { id: 14, name: 'Educacion', icon: '📚', color: '#B8860B', budget: 300000 },
+                { id: 15, name: 'Inversiones', icon: '📈', color: '#CFB53B', budget: 500000 },
+                { id: 16, name: 'Gastos de pareja', icon: '💑', color: '#D4AF37', budget: 250000 }
             ]);
             
             const [showForm, setShowForm] = useState(false);
@@ -180,7 +193,8 @@
                 amount: '',
                 description: '',
                 category: '',
-                paymentMethod: 'tarjeta'
+                paymentMethod: 'tarjeta',
+                observations: ''
             });
             const [budgets, setBudgets] = useState({});
             const donutChartRef = useRef(null);
@@ -273,7 +287,7 @@
 
             const exportBackup = () => {
                 const backup = {
-                    version: '1.0',
+                    version: '2.0',
                     date: new Date().toISOString(),
                     data: {
                         expenses: expenses,
@@ -398,7 +412,8 @@
                             amount: parseFloat(formData.amount),
                             description: formData.description || 'Sin descripcion',
                             category: categories.find(c => c.id === parseInt(formData.category)),
-                            paymentMethod: formData.paymentMethod
+                            paymentMethod: formData.paymentMethod,
+                            observations: formData.observations || ''
                         }
                         : exp
                     );
@@ -413,6 +428,7 @@
                         description: formData.description || 'Sin descripcion',
                         category: categories.find(c => c.id === parseInt(formData.category)),
                         paymentMethod: formData.paymentMethod,
+                        observations: formData.observations || '',
                         date: new Date().toISOString(),
                         month: new Date().toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit' })
                     };
@@ -423,7 +439,7 @@
                     alert('✅ Gasto registrado');
                 }
 
-                setFormData({ amount: '', description: '', category: '', paymentMethod: 'tarjeta' });
+                setFormData({ amount: '', description: '', category: '', paymentMethod: 'tarjeta', observations: '' });
                 setShowForm(false);
                 setMotivationalQuote(quotes[Math.floor(Math.random() * quotes.length)]);
             };
@@ -434,9 +450,15 @@
                     amount: expense.amount.toString(),
                     description: expense.description === 'Sin descripcion' ? '' : expense.description,
                     category: expense.category.id.toString(),
-                    paymentMethod: expense.paymentMethod
+                    paymentMethod: expense.paymentMethod,
+                    observations: expense.observations || ''
                 });
                 setShowForm(true);
+            };
+
+            const viewObservation = (expense) => {
+                setSelectedExpenseForObs(expense);
+                setShowObservationModal(true);
             };
 
             const getTotalMonth = () => {
@@ -713,6 +735,12 @@
                 const topPayment = Object.entries(paymentMethods).sort((a, b) => b[1] - a[1])[0];
                 if (topPayment) {
                     analysis.push(`Tu metodo de pago mas utilizado es ${topPayment[0]} (${topPayment[1]} transacciones).`);
+                }
+                
+                // Análisis de observaciones
+                const expensesWithObs = reportExpenses.filter(e => e.observations && e.observations.trim() !== '');
+                if (expensesWithObs.length > 0) {
+                    analysis.push(`Has agregado observaciones a ${expensesWithObs.length} gastos para un mejor seguimiento.`);
                 }
                 
                 analysis.forEach(text => {
@@ -1068,6 +1096,18 @@
                                                 </div>
                                             </div>
 
+                                            <div>
+                                                <label className="block text-gray-700 text-sm font-bold mb-2">📌 Observaciones (opcional)</label>
+                                                <textarea
+                                                    value={formData.observations}
+                                                    onChange={(e) => setFormData({...formData, observations: e.target.value})}
+                                                    className="w-full p-4 border-2 border-gray-200 rounded-2xl focus:border-yellow-600 focus:outline-none resize-none"
+                                                    placeholder="Ej: Gasto puntual inesperado, Didi más rentable que Uber, etc."
+                                                    rows="3"
+                                                />
+                                                <p className="text-xs text-gray-500 mt-1">💡 Agrega notas para análisis más profundos</p>
+                                            </div>
+
                                             <div className="flex gap-3">
                                                 <button
                                                     onClick={saveExpense}
@@ -1080,7 +1120,7 @@
                                                     onClick={() => {
                                                         setShowForm(false);
                                                         setEditingExpense(null);
-                                                        setFormData({ amount: '', description: '', category: '', paymentMethod: 'tarjeta' });
+                                                        setFormData({ amount: '', description: '', category: '', paymentMethod: 'tarjeta', observations: '' });
                                                     }}
                                                     className="flex-1 bg-gray-200 text-gray-700 rounded-2xl p-4 font-bold active:scale-95 transition-transform"
                                                 >
@@ -1111,7 +1151,17 @@
                                                             {expense.category.icon}
                                                         </div>
                                                         <div className="flex-1 min-w-0">
-                                                            <p className="font-bold text-gray-800 truncate">{expense.description}</p>
+                                                            <div className="flex items-center gap-2">
+                                                                <p className="font-bold text-gray-800 truncate">{expense.description}</p>
+                                                                {expense.observations && expense.observations.trim() !== '' && (
+                                                                    <button 
+                                                                        onClick={() => viewObservation(expense)}
+                                                                        className="observation-badge"
+                                                                    >
+                                                                        📌
+                                                                    </button>
+                                                                )}
+                                                            </div>
                                                             <p className="text-xs text-gray-500">
                                                                 {expense.category.name} • {new Date(expense.date).toLocaleDateString('es-CO')}
                                                             </p>
@@ -1190,7 +1240,17 @@
                                                         {expense.category.icon}
                                                     </div>
                                                     <div className="flex-1 min-w-0">
-                                                        <p className="font-bold text-gray-800 truncate">{expense.description}</p>
+                                                        <div className="flex items-center gap-2">
+                                                            <p className="font-bold text-gray-800 truncate">{expense.description}</p>
+                                                            {expense.observations && expense.observations.trim() !== '' && (
+                                                                <button 
+                                                                    onClick={() => viewObservation(expense)}
+                                                                    className="observation-badge"
+                                                                >
+                                                                    📌
+                                                                </button>
+                                                            )}
+                                                        </div>
                                                         <p className="text-xs text-gray-500">
                                                             {expense.category.name} • {expense.paymentMethod} • {new Date(expense.date).toLocaleDateString('es-CO')}
                                                         </p>
@@ -1363,13 +1423,44 @@
                         )}
                     </div>
 
+                    {showObservationModal && selectedExpenseForObs && (
+                        <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4">
+                            <div className="expense-card rounded-3xl p-6 max-w-md w-full" style={{borderColor: '#D4AF37', borderWidth: '2px'}}>
+                                <h3 className="gradient-text font-bold text-xl mb-4">📌 Observaciones</h3>
+                                <div className="mb-4">
+                                    <p className="text-sm text-gray-600 mb-2">
+                                        <span className="font-bold">{selectedExpenseForObs.category.icon} {selectedExpenseForObs.description}</span>
+                                    </p>
+                                    <p className="text-xs text-gray-500 mb-3">
+                                        ${selectedExpenseForObs.amount.toLocaleString('es-CO')} • {new Date(selectedExpenseForObs.date).toLocaleDateString('es-CO')}
+                                    </p>
+                                    <div className="bg-gray-50 rounded-2xl p-4">
+                                        <p className="text-gray-700 text-sm whitespace-pre-wrap">
+                                            {selectedExpenseForObs.observations}
+                                        </p>
+                                    </div>
+                                </div>
+                                <button 
+                                    onClick={() => {
+                                        setShowObservationModal(false);
+                                        setSelectedExpenseForObs(null);
+                                    }} 
+                                    className="w-full text-black rounded-2xl p-3 font-bold active:scale-95 transition-transform"
+                                    style={{background: 'linear-gradient(135deg, #D4AF37, #FFD700)'}}
+                                >
+                                    Cerrar
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
                     {showBudgetModal && (
                         <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4">
                             <div className="expense-card rounded-3xl p-6 max-w-md w-full" style={{borderColor: '#D4AF37', borderWidth: '2px'}}>
                                 <h3 className="gradient-text font-bold text-xl mb-4">Presupuesto Mensual</h3>
                                 <p className="text-gray-600 text-sm mb-4">Define cuánto quieres gastar este mes</p>
                                 <input
-                                                    type="number"
+                                    type="number"
                                     value={tempBudget}
                                     onChange={(e) => setTempBudget(e.target.value)}
                                     className="w-full p-4 border-2 border-gray-200 rounded-2xl focus:outline-none text-2xl font-bold mb-6"
