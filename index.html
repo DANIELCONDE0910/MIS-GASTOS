@@ -378,23 +378,60 @@
                             return;
                         }
 
-                        if (confirm('⚠️ Esto reemplazará todos tus datos actuales. ¿Continuar?')) {
+                        if (confirm('⚠️ Esto importará tus gastos y datos de perfil. Las categorías se mantendrán actualizadas. ¿Continuar?')) {
+                            // Categorías actuales (siempre usar las nuevas, NO las del backup)
+                            const currentCategories = [
+                                { id: 1, name: 'Alimentacion', icon: '🍔', color: '#D4AF37', budget: 500000 },
+                                { id: 2, name: 'Deporte', icon: '⚽', color: '#8B7355', budget: 200000 },
+                                { id: 3, name: 'Servicios', icon: '💡', color: '#B8860B', budget: 300000 },
+                                { id: 4, name: 'Arriendo', icon: '🏠', color: '#CD7F32', budget: 1500000 },
+                                { id: 5, name: 'Ropa', icon: '👕', color: '#996515', budget: 300000 },
+                                { id: 6, name: 'Viajes', icon: '✈️', color: '#C0C0C0', budget: 400000 },
+                                { id: 8, name: 'Ocio', icon: '📺', color: '#918151', budget: 200000 },
+                                { id: 9, name: 'Transporte', icon: '🚗', color: '#A0826D', budget: 300000 },
+                                { id: 10, name: 'Salud', icon: '💊', color: '#9C8960', budget: 200000 },
+                                { id: 11, name: 'Hormigas', icon: '🐜', color: '#8B7D6B', budget: 150000 },
+                                { id: 12, name: 'Aseo', icon: '🧹', color: '#D2B48C', budget: 100000 },
+                                { id: 13, name: 'Domicilios', icon: '🛵', color: '#DAA520', budget: 200000 },
+                                { id: 14, name: 'Educacion', icon: '📚', color: '#B8860B', budget: 300000 },
+                                { id: 15, name: 'Inversiones', icon: '📈', color: '#CFB53B', budget: 500000 },
+                                { id: 16, name: 'Gastos de pareja', icon: '💑', color: '#D4AF37', budget: 250000 },
+                                { id: 17, name: 'Deudas', icon: '💳', color: '#8B4513', budget: 400000 }
+                            ];
+
+                            // Importar gastos y actualizar sus referencias de categoría
                             if (backup.data.expenses) {
-                                setExpenses(backup.data.expenses);
-                                localStorage.setItem('expenses', JSON.stringify(backup.data.expenses));
+                                const updatedExpenses = backup.data.expenses.map(exp => {
+                                    // Buscar la categoría actual que coincida con la del gasto
+                                    const matchedCat = currentCategories.find(c => c.id === exp.category.id);
+                                    return {
+                                        ...exp,
+                                        category: matchedCat || exp.category // usar nueva si existe, sino la antigua
+                                    };
+                                });
+                                setExpenses(updatedExpenses);
+                                localStorage.setItem('expenses', JSON.stringify(updatedExpenses));
                             }
-                            if (backup.data.categories) {
-                                setCategories(backup.data.categories);
-                                localStorage.setItem('categoriesOrder', JSON.stringify(backup.data.categories));
-                            }
-                            if (backup.data.budgets) {
-                                setBudgets(backup.data.budgets);
-                                localStorage.setItem('budgets', JSON.stringify(backup.data.budgets));
-                            }
+
+                            // NO importar categorías del backup - usar las actuales
+                            setCategories(currentCategories);
+                            localStorage.setItem('categoriesOrder', JSON.stringify(currentCategories));
+
+                            // Actualizar presupuestos manteniendo los nuevos
+                            const updatedBudgets = {};
+                            currentCategories.forEach(cat => {
+                                updatedBudgets[cat.id] = (backup.data.budgets && backup.data.budgets[cat.id]) || cat.budget;
+                            });
+                            setBudgets(updatedBudgets);
+                            localStorage.setItem('budgets', JSON.stringify(updatedBudgets));
+
+                            // Importar presupuesto mensual
                             if (backup.data.monthlyBudget) {
                                 setMonthlyBudget(backup.data.monthlyBudget);
                                 localStorage.setItem('monthlyBudget', backup.data.monthlyBudget.toString());
                             }
+
+                            // Importar datos de perfil
                             if (backup.data.userName) {
                                 setUserName(backup.data.userName);
                                 localStorage.setItem('userName', backup.data.userName);
@@ -416,7 +453,7 @@
                                 localStorage.setItem('userPhoto', backup.data.userPhoto);
                             }
 
-                            alert('✅ ¡Respaldo restaurado exitosamente!');
+                            alert('✅ ¡Gastos importados exitosamente! Las categorías se mantienen actualizadas.');
                             window.location.reload();
                         }
                     } catch (error) {
@@ -1628,4 +1665,3 @@
     </script>
 </body>
 </html>
-
