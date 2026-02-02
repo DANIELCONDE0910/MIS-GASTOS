@@ -216,15 +216,64 @@
                 const saved = localStorage.getItem('expenses');
                 if (saved) setExpenses(JSON.parse(saved));
                 
+                // AUTO-ACTUALIZACIÓN DE CATEGORÍAS
+                const defaultCategories = [
+                    { id: 1, name: 'Alimentacion', icon: '🍔', color: '#D4AF37', budget: 500000 },
+                    { id: 2, name: 'Deporte', icon: '⚽', color: '#8B7355', budget: 200000 },
+                    { id: 3, name: 'Servicios', icon: '💡', color: '#B8860B', budget: 300000 },
+                    { id: 4, name: 'Arriendo', icon: '🏠', color: '#CD7F32', budget: 1500000 },
+                    { id: 5, name: 'Ropa', icon: '👕', color: '#996515', budget: 300000 },
+                    { id: 6, name: 'Viajes', icon: '✈️', color: '#C0C0C0', budget: 400000 },
+                    { id: 8, name: 'Ocio', icon: '📺', color: '#918151', budget: 200000 },
+                    { id: 9, name: 'Transporte', icon: '🚗', color: '#A0826D', budget: 300000 },
+                    { id: 10, name: 'Salud', icon: '💊', color: '#9C8960', budget: 200000 },
+                    { id: 11, name: 'Hormigas', icon: '🐜', color: '#8B7D6B', budget: 150000 },
+                    { id: 12, name: 'Aseo', icon: '🧹', color: '#D2B48C', budget: 100000 },
+                    { id: 13, name: 'Domicilios', icon: '🛵', color: '#DAA520', budget: 200000 },
+                    { id: 14, name: 'Educacion', icon: '📚', color: '#B8860B', budget: 300000 },
+                    { id: 15, name: 'Inversiones', icon: '📈', color: '#CFB53B', budget: 500000 },
+                    { id: 16, name: 'Gastos de pareja', icon: '💑', color: '#D4AF37', budget: 250000 },
+                    { id: 17, name: 'Deudas', icon: '💳', color: '#8B4513', budget: 400000 }
+                ];
+                
                 const savedCategories = localStorage.getItem('categoriesOrder');
-                if (savedCategories) setCategories(JSON.parse(savedCategories));
+                if (savedCategories) {
+                    const existingCategories = JSON.parse(savedCategories);
+                    const existingIds = existingCategories.map(c => c.id);
+                    
+                    // Detectar categorías faltantes
+                    const missingCategories = defaultCategories.filter(defCat => !existingIds.includes(defCat.id));
+                    
+                    if (missingCategories.length > 0) {
+                        // Agregar las categorías faltantes al final
+                        const updatedCategories = [...existingCategories, ...missingCategories];
+                        setCategories(updatedCategories);
+                        localStorage.setItem('categoriesOrder', JSON.stringify(updatedCategories));
+                        console.log(`✅ Se agregaron ${missingCategories.length} categorías nuevas automáticamente`);
+                    } else {
+                        setCategories(existingCategories);
+                    }
+                } else {
+                    // Primera vez, usar todas las categorías por defecto
+                    setCategories(defaultCategories);
+                    localStorage.setItem('categoriesOrder', JSON.stringify(defaultCategories));
+                }
                 
                 const savedBudgets = localStorage.getItem('budgets');
                 if (savedBudgets) {
-                    setBudgets(JSON.parse(savedBudgets));
+                    const existingBudgets = JSON.parse(savedBudgets);
+                    // Agregar presupuestos para categorías nuevas si faltan
+                    const updatedBudgets = {...existingBudgets};
+                    defaultCategories.forEach(cat => {
+                        if (!updatedBudgets[cat.id]) {
+                            updatedBudgets[cat.id] = cat.budget;
+                        }
+                    });
+                    setBudgets(updatedBudgets);
+                    localStorage.setItem('budgets', JSON.stringify(updatedBudgets));
                 } else {
                     const defaultBudgets = {};
-                    categories.forEach(cat => {
+                    defaultCategories.forEach(cat => {
                         defaultBudgets[cat.id] = cat.budget;
                     });
                     setBudgets(defaultBudgets);
@@ -522,6 +571,7 @@
                 
                 const periodNames = { week: 'Semanal', month: 'Mensual', year: 'Anual' };
                 
+                // Header con diseño masculino
                 doc.setFillColor(10, 10, 10);
                 doc.rect(0, 0, 210, 45, 'F');
                 
@@ -537,6 +587,7 @@
                 doc.text(`${new Date().toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })}`, 105, 35, { align: 'center' });
                 doc.text(`Usuario: ${userName}`, 105, 42, { align: 'center' });
                 
+                // Resumen ejecutivo con cajas oscuras y doradas
                 let y = 55;
                 doc.setTextColor(212, 175, 55);
                 doc.setFontSize(16);
@@ -545,6 +596,7 @@
                 
                 y += 10;
                 
+                // Caja de total gastado - Negro con bordes dorados
                 doc.setFillColor(20, 20, 20);
                 doc.roundedRect(20, y, 85, 25, 3, 3, 'F');
                 doc.setDrawColor(212, 175, 55);
@@ -559,6 +611,7 @@
                 doc.setFont(undefined, 'bold');
                 doc.text(`$${totalReport.toLocaleString('es-CO')}`, 25, y + 18);
                 
+                // Caja de presupuesto
                 doc.setFillColor(20, 20, 20);
                 doc.roundedRect(110, y, 85, 25, 3, 3, 'F');
                 doc.setDrawColor(184, 134, 11);
@@ -579,6 +632,7 @@
                 
                 y += 32;
                 
+                // Caja de transacciones
                 doc.setFillColor(20, 20, 20);
                 doc.roundedRect(20, y, 85, 25, 3, 3, 'F');
                 doc.setDrawColor(192, 192, 192);
@@ -592,6 +646,7 @@
                 doc.setFont(undefined, 'bold');
                 doc.text(`${reportExpenses.length}`, 25, y + 18);
                 
+                // Caja de promedio
                 doc.setFillColor(20, 20, 20);
                 doc.roundedRect(110, y, 85, 25, 3, 3, 'F');
                 doc.setDrawColor(218, 165, 32);
@@ -607,6 +662,7 @@
                 
                 y += 35;
                 
+                // Porcentaje usado del presupuesto mensual
                 if (monthlyBudget > 0) {
                     const budgetUsage = ((totalReport / monthlyBudget) * 100).toFixed(1);
                     doc.setFillColor(30, 30, 30);
@@ -618,6 +674,7 @@
                     doc.setFont(undefined, 'bold');
                     doc.text(`Presupuesto Usado: ${budgetUsage}%`, 25, y + 8);
                     
+                    // Barra de progreso dorada
                     doc.setDrawColor(100, 100, 100);
                     doc.setLineWidth(0.5);
                     doc.roundedRect(25, y + 12, 165, 5, 2, 2, 'S');
@@ -628,6 +685,7 @@
                     y += 25;
                 }
                 
+                // Gastos por categoría
                 y += 5;
                 doc.setTextColor(212, 175, 55);
                 doc.setFontSize(16);
@@ -670,9 +728,11 @@
                     }
                 });
                 
+                // Nueva página para análisis
                 doc.addPage();
                 y = 20;
                 
+                // Header de análisis
                 doc.setFillColor(10, 10, 10);
                 doc.rect(0, 0, 210, 30, 'F');
                 doc.setTextColor(212, 175, 55);
@@ -685,6 +745,7 @@
                 doc.setFontSize(10);
                 doc.setFont(undefined, 'normal');
                 
+                // Análisis detallado
                 const analysis = [];
                 
                 const topCategory = categories
@@ -726,6 +787,7 @@
                     analysis.push(`Tu metodo de pago mas utilizado es ${topPayment[0]} (${topPayment[1]} transacciones).`);
                 }
                 
+                // Análisis de observaciones
                 const expensesWithObs = reportExpenses.filter(e => e.observations && e.observations.trim() !== '');
                 if (expensesWithObs.length > 0) {
                     analysis.push(`Has agregado observaciones a ${expensesWithObs.length} gastos para un mejor seguimiento.`);
@@ -744,6 +806,7 @@
                     y += 3;
                 });
                 
+                // Footer en todas las páginas
                 const pageCount = doc.internal.getNumberOfPages();
                 for (let i = 1; i <= pageCount; i++) {
                     doc.setPage(i);
